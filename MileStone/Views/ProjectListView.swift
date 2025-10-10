@@ -12,6 +12,7 @@ struct ProjectListView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Query private var projects: [Project]
+    @State private var viewModel: ProjectListViewModel?
     
     var body: some View {
         NavigationSplitView {
@@ -40,7 +41,9 @@ struct ProjectListView: View {
                         }
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete { offsets in
+                    viewModel?.deleteItems(projects: projects, offsets: offsets)
+                }
             }
             .navigationTitle("My Projects")
             .toolbar {
@@ -48,7 +51,9 @@ struct ProjectListView: View {
                     EditButton()
                 }
                 ToolbarItem {
-                    Button(action: addItem) {
+                    Button(action: {
+                        viewModel?.addItem()
+                    }) {
                         Label("Add Project", systemImage: "plus")
                     }
                 }
@@ -56,27 +61,6 @@ struct ProjectListView: View {
         } detail: {
             Text("프로젝트를 선택하세요")
                 .foregroundColor(.secondary)
-        }
-    }
-    
-    private func addItem() {
-        withAnimation {
-            let newProject = Project(
-                title: "New Project",
-                projectDescription: "프로젝트 설명을 입력하세요",
-                techStack: ["Swift", "SwiftUI"],
-                startDate: Date(),
-                endDate: nil
-            )
-            modelContext.insert(newProject)
-        }
-    }
-    
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(projects[index])
-            }
         }
     }
 }
