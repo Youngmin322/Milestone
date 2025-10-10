@@ -17,7 +17,7 @@ final class Project {
     var endDate: Date?
     var thumbnail: Date?
     
-    init(title: String, projectDescription: String, techStack: [String], startDate: Date, endDate: Date, thumbnail: Date? = nil) {
+    init(title: String, projectDescription: String, techStack: [String], startDate: Date, endDate: Date? = nil, thumbnail: Date? = nil) {
         self.title = title
         self.projectDescription = projectDescription
         self.techStack = techStack

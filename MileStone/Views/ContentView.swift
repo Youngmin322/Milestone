@@ -10,46 +10,71 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Query private var projects: [Project]
 
     var body: some View {
         NavigationSplitView {
             List {
-                ForEach(items) { item in
+                ForEach(projects) { project in
                     NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(project.title)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            Text(project.projectDescription)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                            Text("시작일: \(project.startDate.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
                     } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                        VStack(alignment: .leading) {
+                            Text(project.title)
+                                .font(.headline)
+                            Text(project.techStack.joined(separator: ", "))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 .onDelete(perform: deleteItems)
             }
+            .navigationTitle("My Projects")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
                 ToolbarItem {
                     Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                        Label("Add Project", systemImage: "plus")
                     }
                 }
             }
         } detail: {
-            Text("Select an item")
+            Text("프로젝트를 선택하세요")
+                .foregroundColor(.secondary)
         }
     }
 
     private func addItem() {
         withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+            let newProject = Project(
+                title: "New Project",
+                projectDescription: "프로젝트 설명을 입력하세요",
+                techStack: ["Swift", "SwiftUI"],
+                startDate: Date(),
+                endDate: nil
+            )
+            modelContext.insert(newProject)
         }
     }
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(projects[index])
             }
         }
     }
@@ -57,5 +82,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Project.self, inMemory: true)
 }
