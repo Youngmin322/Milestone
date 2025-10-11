@@ -13,7 +13,19 @@ struct ContentView: View {
         TabView {
             Tab("홈", systemImage: "house.fill") {
                 NavigationStack {
-                    ProjectListView()
+                    Text("테스트")
+                }
+            }
+            
+            Tab("통계", systemImage: "chart.bar.fill") {
+                NavigationStack {
+                    EmptyView()
+                }
+            }
+            
+            Tab("이력서", systemImage: "person.circle.fill") {
+                NavigationStack {
+                    EmptyView()
                 }
             }
         }
