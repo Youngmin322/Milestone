@@ -16,20 +16,7 @@ struct ProjectListView: View {
     var body: some View {
         List {
             ForEach(projects) { project in
-                NavigationLink {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(project.title)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                        Text(project.projectDescription)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                        Text("시작일: \(project.startDate.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
-                } label: {
+                NavigationLink(destination: ProjectDetailView(project: project)) {
                     VStack(alignment: .leading) {
                         Text(project.title)
                             .font(.headline)
