@@ -17,11 +17,10 @@ struct ProjectDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("프로젝트 이미지")
-                        .font(.headline)
-                }
+            VStack(alignment: .leading, spacing: 24) {
+                HeroSectionView(viewModel: viewModel)
+                Text("프로젝트 이미지")
+                    .font(.headline)
             }
         }
     }
