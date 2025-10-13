@@ -13,7 +13,7 @@ struct ContentView: View {
         TabView {
             Tab("홈", systemImage: "house.fill") {
                 NavigationStack {
-                    Text("테스트")
+                    ProjectListView()
                 }
             }
             
