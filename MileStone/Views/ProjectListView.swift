@@ -12,55 +12,58 @@ struct ProjectListView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Query private var projects: [Project]
-    @State private var viewModel: ProjectListViewModel?
     
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(projects) { project in
-                    NavigationLink {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(project.title)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            Text(project.projectDescription)
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                            Text("시작일: \(project.startDate.formatted(date: .abbreviated, time: .omitted))")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .padding()
-                    } label: {
-                        VStack(alignment: .leading) {
-                            Text(project.title)
-                                .font(.headline)
-                            Text(project.techStack.joined(separator: ", "))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+        List {
+            ForEach(projects) { project in
+                NavigationLink {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(project.title)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        Text(project.projectDescription)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                        Text("시작일: \(project.startDate.formatted(date: .abbreviated, time: .omitted))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
-                }
-                .onDelete { offsets in
-                    viewModel?.deleteItems(projects: projects, offsets: offsets)
-                }
-            }
-            .navigationTitle("My Projects")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: {
-                        viewModel?.addItem()
-                    }) {
-                        Label("Add Project", systemImage: "plus")
+                    .padding()
+                } label: {
+                    VStack(alignment: .leading) {
+                        Text(project.title)
+                            .font(.headline)
+                        Text(project.techStack.joined(separator: ", "))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
-        } detail: {
-            Text("프로젝트를 선택하세요")
-                .foregroundColor(.secondary)
+            .onDelete { offsets in
+                // 직접 삭제 처리
+                for index in offsets {
+                    modelContext.delete(projects[index])
+                }
+            }
+        }
+        .navigationTitle("My Projects")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                EditButton()
+            }
+            ToolbarItem {
+                Button(action: {
+                    let newProject = Project(
+                        title: "New Project",
+                        projectDescription: "프로젝트 설명을 입력하세요",
+                        techStack: ["Swift", "SwiftUI"],
+                        startDate: Date()
+                    )
+                    modelContext.insert(newProject)
+                }) {
+                    Label("Add Project", systemImage: "plus")
+                }
+            }
         }
     }
 }

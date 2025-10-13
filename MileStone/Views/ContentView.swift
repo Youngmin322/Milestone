@@ -16,6 +16,18 @@ struct ContentView: View {
                     ProjectListView()
                 }
             }
+            
+            Tab("통계", systemImage: "chart.bar.fill") {
+                NavigationStack {
+                    EmptyView()
+                }
+            }
+            
+            Tab("이력서", systemImage: "person.circle.fill") {
+                NavigationStack {
+                    EmptyView()
+                }
+            }
         }
     }
 }
