@@ -19,4 +19,52 @@ class ProjectDetailViewModel {
     init(project: Project) {
         self.project = project
     }
+    
+    var statusColor: Color {
+        switch project.status {
+        case .inProgress: return .orange
+        case .completed: return .green
+        case .launched: return .blue
+        }
+    }
+    
+    var dateRangeText: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy.MM"
+        let start = formatter.string(from: project.startDate)
+        if let end = project.endDate {
+            let endStr = formatter.string(from: end)
+            return "\(start) - \(endStr)"
+        } else {
+            return "\(start) - 현재"
+        }
+    }
+    
+    func toggleEditMode() {
+        
+    }
+    
+    func toggleFavorite() {
+        
+    }
+    
+    func toggleSection() {
+        
+    }
+    
+    func isSectionExpanded() {
+        
+    }
+    
+    func addTechStack() {
+        
+    }
+    
+    func removeTechStack() {
+        
+    }
+    
+    func addKeyFeature() {
+        
+    }
 }

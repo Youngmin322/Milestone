@@ -17,12 +17,24 @@ struct ProjectDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("프로젝트 이미지")
-                        .font(.headline)
-                }
+            VStack(alignment: .leading, spacing: 24) {
+                HeroSectionView(viewModel: viewModel)
+                Text("프로젝트 이미지")
+                    .font(.headline)
             }
         }
     }
+}
+
+
+#Preview {
+    let sampleProject = Project(
+        title: "MileStone 앱",
+        projectDescription: "개인 프로젝트 관리 앱",
+        techStack: ["SwiftUI", "SwiftData", "CoreML"],
+        startDate: .now,
+        thumbnail: nil
+    )
+    
+    return ProjectDetailView(project: sampleProject)
 }
