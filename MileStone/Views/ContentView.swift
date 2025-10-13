@@ -28,6 +28,12 @@ struct ContentView: View {
                     EmptyView()
                 }
             }
+            
+            Tab(role: .search) {
+                NavigationStack {
+                    ProjectListView()
+                }
+            }
         }
     }
 }
