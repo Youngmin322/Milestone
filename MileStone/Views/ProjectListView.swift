@@ -36,6 +36,16 @@ struct ProjectListView: View {
                         Text(project.techStack.joined(separator: ", "))
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        HStack(spacing: 12) {
+                            if let thumbnailData = project.thumbnail,
+                               let uiImage = UIImage(data: thumbnailData) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
                     }
                 }
             }
