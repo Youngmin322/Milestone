@@ -26,3 +26,16 @@ struct ProjectDetailView: View {
         }
     }
 }
+
+
+#Preview {
+    let sampleProject = Project(
+        title: "MileStone 앱",
+        projectDescription: "개인 프로젝트 관리 앱",
+        techStack: ["SwiftUI", "SwiftData", "CoreML"],
+        startDate: .now,
+        thumbnail: nil
+    )
+    
+    return ProjectDetailView(project: sampleProject)
+}
