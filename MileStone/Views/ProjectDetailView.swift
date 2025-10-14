@@ -722,44 +722,63 @@ struct ProjectDetailView: View {
         onDelete: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button {
-                withAnimation {
-                    if expandedSections.contains(id) {
-                        expandedSections.remove(id)
-                    } else {
-                        expandedSections.insert(id)
+        VStack(alignment: .leading, spacing: 8) {
+            // Section header OUTSIDE the card
+            HStack(alignment: .center, spacing: 8) {
+                Button {
+                    withAnimation {
+                        if expandedSections.contains(id) {
+                            expandedSections.remove(id)
+                        } else {
+                            expandedSections.insert(id)
+                        }
                     }
-                }
-            } label: {
-                HStack {
+                } label: {
                     Label(title, systemImage: icon)
                         .font(.headline)
-                    Spacer()
-                    if let onDelete = onDelete {
-                        Button {
-                            onDelete()
-                        } label: {
-                            Image(systemName: "trash")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
-                        .padding(.trailing, 8)
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                if let onDelete = onDelete {
+                    Button {
+                        onDelete()
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundStyle(.red)
                     }
+                    .padding(.trailing, 4)
+                }
+                Button(action: {
+                    withAnimation {
+                        if expandedSections.contains(id) {
+                            expandedSections.remove(id)
+                        } else {
+                            expandedSections.insert(id)
+                        }
+                    }
+                }) {
                     Image(systemName: expandedSections.contains(id) ? "chevron.up" : "chevron.down")
                         .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .foregroundStyle(.primary)
+                .buttonStyle(.plain)
             }
-            
+            .padding(.bottom, 2)
+
+            // Card container with only content
             if expandedSections.contains(id) {
-                content()
+                VStack(alignment: .leading, spacing: 12) {
+                    content()
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .padding(.top, 4)
     }
     
     private func infoRow(icon: String, title: String, value: Binding<String>) -> some View {
