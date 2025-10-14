@@ -15,38 +15,49 @@ struct ProjectListView: View {
     
     var body: some View {
         List {
-            ForEach(projects) { project in
-                NavigationLink(destination: ProjectDetailView(project: project)) {
-                    HStack(spacing: 12) {
-                        // 썸네일 이미지
-                        if let thumbnailData = project.thumbnail,
-                           let uiImage = UIImage(data: thumbnailData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 50, height: 50)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
+            ForEach(Array(projects.enumerated()), id: \.element.id) { index, project in
+                HStack(spacing: 12) {
+                    
+                    // 텍스트 정보
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(project.title)
+                            .font(.headline)
                         
-                        // 텍스트 정보
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(project.title)
-                                .font(.headline)
+                        // techStack이 비어있지 않을 때만 표시
+                        if !project.techStack.isEmpty {
+                            let displayStack = project.techStack.prefix(3)
+                            let stackText = displayStack.joined(separator: ", ")
                             
-                            // techStack이 비어있지 않을 때만 표시
-                            if !project.techStack.isEmpty {
-                                let displayStack = project.techStack.prefix(3)
-                                let stackText = displayStack.joined(separator: ", ")
-                                
-                                Text(stackText)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                            }
+                            Text(stackText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
                         }
                     }
-                    .frame(height: 30)
+                    
+                    // 이미지를 오른쪽 끝으로 밀어내는 Spacer
+                    Spacer()
+                    
+                    // 썸네일 이미지
+                    if let thumbnailData = project.thumbnail,
+                       let uiImage = UIImage(data: thumbnailData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 50, height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .contentShape(Rectangle())
+                .background(
+                    NavigationLink("", destination: ProjectDetailView(project: project))
+                        .opacity(0)
+                )
+                .listRowSeparator(.automatic) // 자동으로 적절한 구분선 처리
+                .listRowBackground(Color(.systemBackground))
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             }
             .onDelete { offsets in
                 // 직접 삭제 처리
@@ -55,6 +66,9 @@ struct ProjectListView: View {
                 }
             }
         }
+        .listStyle(.insetGrouped) // 메모 앱 스타일로 변경
+        .listSectionSeparator(.hidden) // 섹션 구분선 숨기기
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("My Projects")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
