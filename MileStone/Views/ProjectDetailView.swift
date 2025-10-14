@@ -13,67 +13,118 @@ struct ProjectDetailView: View {
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var selectedImages: [PhotosPickerItem] = []
     @State private var isEditMode = false
-    @State private var expandedSections: Set<String> = ["overview", "details", "links"]
+    @State private var expandedSections: Set<String> = []
+    @State private var showingAddSectionSheet = false
+    
+    // 사용 가능한 섹션 타입
+    enum OptionalSection: String, CaseIterable, Identifiable {
+        case overview = "프로젝트 개요"
+        case details = "상세 내용"
+        case visuals = "비주얼 자료"
+        case links = "링크"
+        case notes = "메모 & 회고"
+        case tags = "태그"
+        
+        var id: String { rawValue }
+        var icon: String {
+            switch self {
+            case .overview: return "doc.text"
+            case .details: return "list.bullet"
+            case .visuals: return "photo.on.rectangle"
+            case .links: return "link"
+            case .notes: return "note.text"
+            case .tags: return "tag"
+            }
+        }
+    }
+    
+    // 현재 활성화된 섹션들을 확인
+    private var activeSections: [OptionalSection] {
+        var sections: [OptionalSection] = []
+        
+        if hasOverviewContent {
+            sections.append(.overview)
+        }
+        if hasDetailsContent {
+            sections.append(.details)
+        }
+        if !project.images.isEmpty {
+            sections.append(.visuals)
+        }
+        if hasLinksContent {
+            sections.append(.links)
+        }
+        if !project.notes.isEmpty {
+            sections.append(.notes)
+        }
+        if !project.tags.isEmpty {
+            sections.append(.tags)
+        }
+        
+        return sections
+    }
+    
+    private var hasOverviewContent: Bool {
+        !project.problem.isEmpty || !project.solution.isEmpty || !project.goals.isEmpty
+    }
+    
+    private var hasDetailsContent: Bool {
+        !project.keyFeatures.isEmpty || !project.challenges.isEmpty
+    }
+    
+    private var hasLinksContent: Bool {
+        project.githubURL != nil || project.liveURL != nil || project.figmaURL != nil
+    }
+    
+    // 추가 가능한 섹션들
+    private var availableSectionsToAdd: [OptionalSection] {
+        OptionalSection.allCases.filter { section in
+            switch section {
+            case .overview:
+                return !hasOverviewContent
+            case .details:
+                return !hasDetailsContent
+            case .visuals:
+                return project.images.isEmpty
+            case .links:
+                return !hasLinksContent
+            case .notes:
+                return project.notes.isEmpty
+            case .tags:
+                return project.tags.isEmpty
+            }
+        }
+    }
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                // MARK: - Hero Section
+                // MARK: - Hero Section (항상 표시)
                 heroSection
                 
-                // MARK: - 핵심 정보 카드
+                // MARK: - 핵심 정보 카드 (항상 표시)
                 infoCard
                 
-                // MARK: - 프로젝트 개요
-                expandableSection(
-                    id: "overview",
-                    title: "프로젝트 개요",
-                    icon: "doc.text"
-                ) {
-                    overviewSection
+                // MARK: - 동적 섹션들
+                ForEach(activeSections) { section in
+                    sectionView(for: section)
                 }
                 
-                // MARK: - 상세 내용
-                expandableSection(
-                    id: "details",
-                    title: "상세 내용",
-                    icon: "list.bullet"
-                ) {
-                    detailsSection
-                }
-                
-                // MARK: - 비주얼 자료
-                if !project.images.isEmpty {
-                    expandableSection(
-                        id: "visuals",
-                        title: "비주얼 자료",
-                        icon: "photo.on.rectangle"
-                    ) {
-                        visualsSection
+                // MARK: - 섹션 추가 버튼 (편집 모드일 때만)
+                if isEditMode && !availableSectionsToAdd.isEmpty {
+                    Button {
+                        showingAddSectionSheet = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                            Text("섹션 추가하기")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .foregroundColor(.blue)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                }
-                
-                // MARK: - 링크
-                expandableSection(
-                    id: "links",
-                    title: "링크",
-                    icon: "link"
-                ) {
-                    linksSection
-                }
-                
-                // MARK: - 메모/회고
-                expandableSection(
-                    id: "notes",
-                    title: "메모 & 회고",
-                    icon: "note.text"
-                ) {
-                    notesSection
-                }
-                
-                // MARK: - 태그
-                if !project.tags.isEmpty {
-                    tagsSection
                 }
             }
             .padding()
@@ -97,6 +148,9 @@ struct ProjectDetailView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingAddSectionSheet) {
+            addSectionSheet
+        }
         .onChange(of: selectedPhoto) { oldValue, newValue in
             Task {
                 if let data = try? await newValue?.loadTransferable(type: Data.self) {
@@ -117,10 +171,159 @@ struct ProjectDetailView: View {
         }
     }
     
+    // MARK: - 섹션 추가 시트
+    private var addSectionSheet: some View {
+        NavigationStack {
+            List(availableSectionsToAdd) { section in
+                Button {
+                    addSection(section)
+                    showingAddSectionSheet = false
+                } label: {
+                    HStack {
+                        Image(systemName: section.icon)
+                            .foregroundColor(.blue)
+                            .frame(width: 30)
+                        Text(section.rawValue)
+                            .foregroundColor(.primary)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+            .navigationTitle("섹션 추가")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("취소") {
+                        showingAddSectionSheet = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+    
+    // MARK: - 섹션 추가 로직
+    private func addSection(_ section: OptionalSection) {
+        withAnimation {
+            switch section {
+            case .overview:
+                if project.problem.isEmpty {
+                    project.problem = ""
+                }
+            case .details:
+                if project.keyFeatures.isEmpty {
+                    project.keyFeatures = [""]
+                }
+            case .visuals:
+                // 이미지 피커 트리거는 섹션 생성 후 사용자가 직접
+                break
+            case .links:
+                if project.githubURL == nil {
+                    project.githubURL = ""
+                }
+            case .notes:
+                project.notes = ""
+            case .tags:
+                project.tags = [""]
+            }
+            expandedSections.insert(section.rawValue)
+        }
+    }
+    
+    // MARK: - 섹션 뷰 생성
+    @ViewBuilder
+    private func sectionView(for section: OptionalSection) -> some View {
+        switch section {
+        case .overview:
+            expandableSection(
+                id: section.rawValue,
+                title: section.rawValue,
+                icon: section.icon,
+                onDelete: isEditMode ? {
+                    withAnimation {
+                        project.problem = ""
+                        project.solution = ""
+                        project.goals = ""
+                    }
+                } : nil
+            ) {
+                overviewSection
+            }
+        case .details:
+            expandableSection(
+                id: section.rawValue,
+                title: section.rawValue,
+                icon: section.icon,
+                onDelete: isEditMode ? {
+                    withAnimation {
+                        project.keyFeatures = []
+                        project.challenges = ""
+                    }
+                } : nil
+            ) {
+                detailsSection
+            }
+        case .visuals:
+            expandableSection(
+                id: section.rawValue,
+                title: section.rawValue,
+                icon: section.icon,
+                onDelete: isEditMode ? {
+                    withAnimation {
+                        project.images = []
+                    }
+                } : nil
+            ) {
+                visualsSection
+            }
+        case .links:
+            expandableSection(
+                id: section.rawValue,
+                title: section.rawValue,
+                icon: section.icon,
+                onDelete: isEditMode ? {
+                    withAnimation {
+                        project.githubURL = nil
+                        project.liveURL = nil
+                        project.figmaURL = nil
+                    }
+                } : nil
+            ) {
+                linksSection
+            }
+        case .notes:
+            expandableSection(
+                id: section.rawValue,
+                title: section.rawValue,
+                icon: section.icon,
+                onDelete: isEditMode ? {
+                    withAnimation {
+                        project.notes = ""
+                    }
+                } : nil
+            ) {
+                notesSection
+            }
+        case .tags:
+            expandableSection(
+                id: section.rawValue,
+                title: section.rawValue,
+                icon: section.icon,
+                onDelete: isEditMode ? {
+                    withAnimation {
+                        project.tags = []
+                    }
+                } : nil
+            ) {
+                tagsSection
+            }
+        }
+    }
+    
     // MARK: - Hero Section
     private var heroSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 제목 & 상태
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     if isEditMode {
@@ -147,7 +350,6 @@ struct ProjectDetailView: View {
                 statusBadge
             }
             
-            // 기간
             HStack {
                 Image(systemName: "calendar")
                     .foregroundStyle(.secondary)
@@ -155,7 +357,7 @@ struct ProjectDetailView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            // 썸네일 이미지
+            
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 if let thumbnailData = project.thumbnail,
                    let uiImage = UIImage(data: thumbnailData) {
@@ -211,7 +413,6 @@ struct ProjectDetailView: View {
                 }
             }
             
-            // 기술 스택
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Label("기술 스택", systemImage: "hammer.fill")
@@ -271,7 +472,6 @@ struct ProjectDetailView: View {
     // MARK: - 상세 내용
     private var detailsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 주요 기능
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text("주요 기능")
@@ -474,6 +674,7 @@ struct ProjectDetailView: View {
         id: String,
         title: String,
         icon: String,
+        onDelete: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -490,6 +691,16 @@ struct ProjectDetailView: View {
                     Label(title, systemImage: icon)
                         .font(.headline)
                     Spacer()
+                    if let onDelete = onDelete {
+                        Button {
+                            onDelete()
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                        .padding(.trailing, 8)
+                    }
                     Image(systemName: expandedSections.contains(id) ? "chevron.up" : "chevron.down")
                         .font(.caption)
                 }
