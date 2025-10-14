@@ -26,16 +26,6 @@ struct ProjectDetailView: View {
         case tags = "태그"
         
         var id: String { rawValue }
-        var icon: String {
-            switch self {
-            case .overview: return "doc.text"
-            case .details: return "list.bullet"
-            case .visuals: return "photo.on.rectangle"
-            case .links: return "link"
-            case .notes: return "note.text"
-            case .tags: return "tag"
-            }
-        }
     }
     
     // 현재 활성화된 섹션들을 확인
@@ -172,9 +162,6 @@ struct ProjectDetailView: View {
                     showingAddSectionSheet = false
                 } label: {
                     HStack {
-                        Image(systemName: section.icon)
-                            .foregroundColor(.blue)
-                            .frame(width: 30)
                         Text(section.rawValue)
                             .foregroundColor(.primary)
                         Spacer()
@@ -208,7 +195,6 @@ struct ProjectDetailView: View {
                     project.keyFeatures = [""]
                 }
             case .visuals:
-                // 이미지 피커 트리거는 섹션 생성 후 사용자가 직접
                 break
             case .links:
                 if project.githubURL == nil {
@@ -226,10 +212,8 @@ struct ProjectDetailView: View {
     // MARK: - 섹션 삭제 로직
     private func deleteSection(_ section: OptionalSection) {
         withAnimation {
-            // 먼저 expandedSections에서 제거
             expandedSections.remove(section.rawValue)
             
-            // 약간의 지연을 주고 데이터 삭제
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 switch section {
                 case .overview:
@@ -262,10 +246,7 @@ struct ProjectDetailView: View {
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
-                icon: section.icon,
-                onDelete: isEditMode ? {
-                    deleteSection(.overview)
-                } : nil
+                onDelete: isEditMode ? { deleteSection(.overview) } : nil
             ) {
                 overviewSection
             }
@@ -273,10 +254,7 @@ struct ProjectDetailView: View {
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
-                icon: section.icon,
-                onDelete: isEditMode ? {
-                    deleteSection(.details)
-                } : nil
+                onDelete: isEditMode ? { deleteSection(.details) } : nil
             ) {
                 detailsSection
             }
@@ -284,10 +262,7 @@ struct ProjectDetailView: View {
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
-                icon: section.icon,
-                onDelete: isEditMode ? {
-                    deleteSection(.visuals)
-                } : nil
+                onDelete: isEditMode ? { deleteSection(.visuals) } : nil
             ) {
                 visualsSection
             }
@@ -295,10 +270,7 @@ struct ProjectDetailView: View {
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
-                icon: section.icon,
-                onDelete: isEditMode ? {
-                    deleteSection(.links)
-                } : nil
+                onDelete: isEditMode ? { deleteSection(.links) } : nil
             ) {
                 linksSection
             }
@@ -306,10 +278,7 @@ struct ProjectDetailView: View {
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
-                icon: section.icon,
-                onDelete: isEditMode ? {
-                    deleteSection(.notes)
-                } : nil
+                onDelete: isEditMode ? { deleteSection(.notes) } : nil
             ) {
                 notesSection
             }
@@ -317,10 +286,7 @@ struct ProjectDetailView: View {
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
-                icon: section.icon,
-                onDelete: isEditMode ? {
-                    deleteSection(.tags)
-                } : nil
+                onDelete: isEditMode ? { deleteSection(.tags) } : nil
             ) {
                 tagsSection
             }
@@ -367,32 +333,27 @@ struct ProjectDetailView: View {
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 if let thumbnailData = project.thumbnail,
                    let uiImage = UIImage(data: thumbnailData) {
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                    }
-                    .disabled(!isEditMode)
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 } else if isEditMode {
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 200)
-                            .overlay(
-                                VStack(spacing: 8) {
-                                    Image(systemName: "photo.badge.plus")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.gray)
-                                    Text("대표 이미지 추가")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            )
-                    }
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 200)
+                        .overlay(
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.badge.plus")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray)
+                                Text("대표 이미지 추가")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        )
                 }
             }
             .disabled(!isEditMode)
@@ -519,70 +480,37 @@ struct ProjectDetailView: View {
                                         }
                                     }
                                 ))
-                                .textFieldStyle(.roundedBorder)
                                 Button {
                                     if project.keyFeatures.indices.contains(index) {
                                         project.keyFeatures.remove(at: index)
                                     }
                                 } label: {
-                                    Image(systemName: "minus.circle.fill")
+                                    Image(systemName: "xmark.circle.fill")
                                         .foregroundStyle(.red)
                                 }
                             } else {
-                                HStack(alignment: .top, spacing: 8) {
-                                    Text("•")
-                                    Text(feature)
-                                }
+                                Text("• \(feature)")
                             }
                         }
                     }
                 }
             }
             
-            subsectionView(title: "기술적 챌린지 & 해결방법", text: $project.challenges, placeholder: "어떤 어려움이 있었고, 어떻게 극복했나요?")
+            subsectionView(title: "도전 과제", text: $project.challenges, placeholder: "개발 과정에서 겪은 어려움")
         }
     }
     
     // MARK: - 비주얼 자료
     private var visualsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("스크린샷 & 이미지")
-                    .font(.headline)
-                Spacer()
-                if isEditMode {
-                    PhotosPicker(selection: $selectedImages, matching: .images, photoLibrary: .shared()) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                    }
-                }
-            }
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(Array(project.images.enumerated()), id: \.offset) { index, imageData in
-                        if index < project.images.count, let uiImage = UIImage(data: imageData) {
-                            ZStack(alignment: .topTrailing) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 200, height: 150)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                
-                                if isEditMode {
-                                    Button {
-                                        if project.images.indices.contains(index) {
-                                            project.images.remove(at: index)
-                                        }
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundStyle(.white, .red)
-                                            .font(.title3)
-                                    }
-                                    .padding(8)
-                                }
-                            }
-                        }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(project.images.enumerated()), id: \.offset) { index, data in
+                    if let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
             }
@@ -591,139 +519,52 @@ struct ProjectDetailView: View {
     
     // MARK: - 링크
     private var linksSection: some View {
-        VStack(spacing: 12) {
-            linkRow(icon: "link", title: "GitHub", url: $project.githubURL)
-            linkRow(icon: "globe", title: "Live Demo", url: $project.liveURL)
-            linkRow(icon: "paintbrush", title: "Figma", url: $project.figmaURL)
+        VStack(alignment: .leading, spacing: 12) {
+            if let githubURL = project.githubURL, !githubURL.isEmpty {
+                LinkRow(title: "GitHub", url: githubURL)
+            }
+            if let liveURL = project.liveURL, !liveURL.isEmpty {
+                LinkRow(title: "Live Site", url: liveURL)
+            }
+            if let figmaURL = project.figmaURL, !figmaURL.isEmpty {
+                LinkRow(title: "Figma", url: figmaURL)
+            }
         }
     }
     
-    // MARK: - 메모/회고
+    // MARK: - 메모 & 회고
     private var notesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if isEditMode {
-                TextEditor(text: $project.notes)
-                    .frame(minHeight: 100)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else if !project.notes.isEmpty {
-                Text(project.notes)
-                    .font(.body)
-            } else {
-                Text("배운 점, 개선 사항 등을 기록해보세요")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        TextEditor(text: $project.notes)
+            .frame(minHeight: 100)
+            .padding(8)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
     // MARK: - 태그
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("태그")
-                    .font(.headline)
-                Spacer()
-                if isEditMode {
-                    Button {
-                        project.tags.append("")
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                }
-            }
-            
-            FlowLayout(spacing: 8) {
-                ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
-                    if index < project.tags.count {
-                        if isEditMode {
-                            HStack(spacing: 4) {
-                                TextField("태그", text: Binding(
-                                    get: { project.tags.indices.contains(index) ? project.tags[index] : "" },
-                                    set: {
-                                        if project.tags.indices.contains(index) {
-                                            project.tags[index] = $0
-                                        }
-                                    }
-                                ))
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 80)
-                                Button {
-                                    if project.tags.indices.contains(index) {
-                                        project.tags.remove(at: index)
-                                    }
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.red)
-                                }
-                            }
-                        } else {
-                            Text("#\(tag)")
-                                .font(.caption)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.purple.opacity(0.1))
-                                .foregroundColor(.purple)
-                                .clipShape(Capsule())
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Helper Views
-    private var statusBadge: some View {
-        Group {
-            if isEditMode {
-                Picker("", selection: $project.status) {
-                    Text("진행중").tag(ProjectStatus.inProgress)
-                    Text("완료").tag(ProjectStatus.completed)
-                    Text("런칭됨").tag(ProjectStatus.launched)
-                }
-                .pickerStyle(.menu)
-            } else {
-                Text(project.status.rawValue)
-                    .font(.caption.bold())
+        FlowLayout(spacing: 8) {
+            ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
+                Text(tag)
+                    .font(.caption)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(statusColor.opacity(0.2))
-                    .foregroundColor(statusColor)
+                    .background(Color.green.opacity(0.1))
+                    .foregroundColor(.green)
                     .clipShape(Capsule())
             }
         }
     }
     
-    private var statusColor: Color {
-        switch project.status {
-        case .inProgress: return .orange
-        case .completed: return .green
-        case .launched: return .blue
-        }
-    }
-    
-    private var dateRangeText: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy.MM"
-        let start = formatter.string(from: project.startDate)
-        if let end = project.endDate {
-            let endStr = formatter.string(from: end)
-            return "\(start) - \(endStr)"
-        } else {
-            return "\(start) - 현재"
-        }
-    }
-    
+    // MARK: - 섹션 공통 UI (아이콘 제거)
     private func expandableSection<Content: View>(
         id: String,
         title: String,
-        icon: String,
         onDelete: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Section header OUTSIDE the card
+            // Section header
             HStack(alignment: .center, spacing: 8) {
                 Button {
                     withAnimation {
@@ -734,12 +575,14 @@ struct ProjectDetailView: View {
                         }
                     }
                 } label: {
-                    Label(title, systemImage: icon)
+                    Text(title)
                         .font(.headline)
                         .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
+                
                 Spacer()
+                
                 if let onDelete = onDelete {
                     Button {
                         onDelete()
@@ -750,6 +593,7 @@ struct ProjectDetailView: View {
                     }
                     .padding(.trailing, 4)
                 }
+                
                 Button(action: {
                     withAnimation {
                         if expandedSections.contains(id) {
@@ -766,8 +610,7 @@ struct ProjectDetailView: View {
                 .buttonStyle(.plain)
             }
             .padding(.bottom, 2)
-
-            // Card container with only content
+            
             if expandedSections.contains(id) {
                 VStack(alignment: .leading, spacing: 12) {
                     content()
@@ -781,6 +624,40 @@ struct ProjectDetailView: View {
         .padding(.top, 4)
     }
     
+    // MARK: - 서브섹션 텍스트 편집
+    private func subsectionView(title: String, text: Binding<String>, placeholder: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.headline)
+            if isEditMode {
+                TextEditor(text: text)
+                    .frame(minHeight: 80)
+                    .padding(6)
+                    .background(Color(.systemGray6))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(
+                        Group {
+                            if text.wrappedValue.isEmpty {
+                                Text(placeholder)
+                                    .foregroundColor(.gray)
+                                    .padding(8)
+                            }
+                        }, alignment: .topLeading
+                    )
+            } else {
+                if !text.wrappedValue.isEmpty {
+                    Text(text.wrappedValue)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                } else {
+                    Text("-")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Info Row
     private func infoRow(icon: String, title: String, value: Binding<String>) -> some View {
         HStack {
             Label(title, systemImage: icon)
@@ -790,73 +667,48 @@ struct ProjectDetailView: View {
             if isEditMode {
                 TextField(title, text: value)
                     .multilineTextAlignment(.trailing)
-                    .font(.subheadline)
             } else {
-                Text(value.wrappedValue.isEmpty ? "-" : value.wrappedValue)
+                Text(value.wrappedValue)
                     .font(.subheadline)
             }
         }
     }
     
-    private func subsectionView(title: String, text: Binding<String>, placeholder: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.headline)
-            
-            if isEditMode {
-                TextEditor(text: text)
-                    .frame(minHeight: 80)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else if !text.wrappedValue.isEmpty {
-                Text(text.wrappedValue)
-                    .font(.body)
-            } else {
-                Text(placeholder)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-        }
+    // MARK: - Status Badge
+    private var statusBadge: some View {
+        Text(project.status.rawValue)
+            .font(.caption)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.blue.opacity(0.1))
+            .foregroundColor(.blue)
+            .clipShape(Capsule())
     }
     
-    private func linkRow(icon: String, title: String, url: Binding<String?>) -> some View {
-        HStack {
-            Label(title, systemImage: icon)
-                .font(.subheadline)
-            Spacer()
-            if isEditMode {
-                TextField("URL", text: Binding(
-                    get: { url.wrappedValue ?? "" },
-                    set: { url.wrappedValue = $0.isEmpty ? nil : $0 }
-                ))
-                .textFieldStyle(.roundedBorder)
-                .keyboardType(.URL)
-                .autocapitalization(.none)
-                .font(.caption)
-            } else if let urlString = url.wrappedValue, !urlString.isEmpty, let validURL = URL(string: urlString) {
-                Link(destination: validURL) {
-                    Text("열기")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                }
-            } else {
-                Text("-")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
+    private var dateRangeText: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        let start = project.startDate // nil이면 현재 날짜 사용
+        let end = project.endDate ?? Date() // nil이면 현재 날짜 사용
+        return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
     }
 }
 
-#Preview {
-    let sampleProject = Project(
-        title: "MileStone 앱",
-        projectDescription: "개인 프로젝트 관리 앱",
-        techStack: ["SwiftUI", "SwiftData", "CoreML"],
-        startDate: .now,
-        thumbnail: nil
-    )
+// MARK: - 링크 row
+struct LinkRow: View {
+    let title: String
+    let url: String
     
-    return ProjectDetailView(project: sampleProject)
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.subheadline)
+            Spacer()
+            Link(destination: URL(string: url)!) {
+                Text(url)
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
+        }
+    }
 }
