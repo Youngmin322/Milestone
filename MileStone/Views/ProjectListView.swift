@@ -35,7 +35,10 @@ struct ProjectListView: View {
                             
                             // techStack이 비어있지 않을 때만 표시
                             if !project.techStack.isEmpty {
-                                Text(project.techStack.joined(separator: ", "))
+                                let displayStack = project.techStack.prefix(3)
+                                let stackText = displayStack.joined(separator: ", ")
+                                
+                                Text(stackText)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .lineLimit(1)
@@ -82,7 +85,7 @@ struct ProjectListView: View {
     let project1 = Project(
         title: "iOS 날씨 앱",
         projectDescription: "SwiftUI로 만든 날씨 예보 앱",
-        techStack: ["SwiftUI", "Combine", "WeatherKit"],
+        techStack: ["SwiftUI", "Combine", "WeatherKit", "SwiftData"],
         startDate: Date()
     )
     
