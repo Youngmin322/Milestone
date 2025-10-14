@@ -109,42 +109,34 @@ struct ProjectDetailView: View {
                 ForEach(activeSections) { section in
                     sectionView(for: section)
                 }
-                
-                // MARK: - 섹션 추가 버튼 (편집 모드일 때만)
-                if isEditMode && !availableSectionsToAdd.isEmpty {
-                    Button {
-                        showingAddSectionSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                            Text("섹션 추가하기")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .foregroundColor(.blue)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
             }
             .padding()
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isEditMode.toggle()
-                } label: {
-                    Text(isEditMode ? "완료" : "편집")
-                }
-            }
-            
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    project.isFavorite.toggle()
-                } label: {
-                    Image(systemName: project.isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(project.isFavorite ? .yellow : .gray)
+                HStack(spacing: 16) {
+                    Button {
+                        project.isFavorite.toggle()
+                    } label: {
+                        Image(systemName: project.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(project.isFavorite ? .yellow : .gray)
+                    }
+                    
+                    // 편집 모드일 때만 + 버튼 표시
+                    if isEditMode && !availableSectionsToAdd.isEmpty {
+                        Button {
+                            showingAddSectionSheet = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                    }
+                    
+                    Button {
+                        isEditMode.toggle()
+                    } label: {
+                        Text(isEditMode ? "완료" : "편집")
+                    }
                 }
             }
         }
@@ -231,6 +223,37 @@ struct ProjectDetailView: View {
         }
     }
     
+    // MARK: - 섹션 삭제 로직
+    private func deleteSection(_ section: OptionalSection) {
+        withAnimation {
+            // 먼저 expandedSections에서 제거
+            expandedSections.remove(section.rawValue)
+            
+            // 약간의 지연을 주고 데이터 삭제
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                switch section {
+                case .overview:
+                    self.project.problem = ""
+                    self.project.solution = ""
+                    self.project.goals = ""
+                case .details:
+                    self.project.keyFeatures = []
+                    self.project.challenges = ""
+                case .visuals:
+                    self.project.images = []
+                case .links:
+                    self.project.githubURL = nil
+                    self.project.liveURL = nil
+                    self.project.figmaURL = nil
+                case .notes:
+                    self.project.notes = ""
+                case .tags:
+                    self.project.tags = []
+                }
+            }
+        }
+    }
+    
     // MARK: - 섹션 뷰 생성
     @ViewBuilder
     private func sectionView(for section: OptionalSection) -> some View {
@@ -241,11 +264,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.problem = ""
-                        project.solution = ""
-                        project.goals = ""
-                    }
+                    deleteSection(.overview)
                 } : nil
             ) {
                 overviewSection
@@ -256,10 +275,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.keyFeatures = []
-                        project.challenges = ""
-                    }
+                    deleteSection(.details)
                 } : nil
             ) {
                 detailsSection
@@ -270,9 +286,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.images = []
-                    }
+                    deleteSection(.visuals)
                 } : nil
             ) {
                 visualsSection
@@ -283,11 +297,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.githubURL = nil
-                        project.liveURL = nil
-                        project.figmaURL = nil
-                    }
+                    deleteSection(.links)
                 } : nil
             ) {
                 linksSection
@@ -298,9 +308,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.notes = ""
-                    }
+                    deleteSection(.notes)
                 } : nil
             ) {
                 notesSection
@@ -311,9 +319,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.tags = []
-                    }
+                    deleteSection(.tags)
                 } : nil
             ) {
                 tagsSection
@@ -361,27 +367,32 @@ struct ProjectDetailView: View {
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 if let thumbnailData = project.thumbnail,
                    let uiImage = UIImage(data: thumbnailData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 200)
-                        .overlay(
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo.badge.plus")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.gray)
-                                Text("대표 이미지 추가")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-                        )
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .disabled(!isEditMode)
+                } else if isEditMode {
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 200)
+                            .overlay(
+                                VStack(spacing: 8) {
+                                    Image(systemName: "photo.badge.plus")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.gray)
+                                    Text("대표 이미지 추가")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            )
+                    }
                 }
             }
             .disabled(!isEditMode)
@@ -403,7 +414,6 @@ struct ProjectDetailView: View {
                     Picker("", selection: $project.projectType) {
                         Text("개인").tag(ProjectType.personal)
                         Text("팀").tag(ProjectType.team)
-                        Text("클라이언트").tag(ProjectType.client)
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 200)
@@ -429,27 +439,38 @@ struct ProjectDetailView: View {
                 }
                 
                 FlowLayout(spacing: 8) {
-                    ForEach(project.techStack.indices, id: \.self) { index in
-                        if isEditMode {
-                            HStack(spacing: 4) {
-                                TextField("기술", text: $project.techStack[index])
+                    ForEach(Array(project.techStack.enumerated()), id: \.offset) { index, tech in
+                        if index < project.techStack.count {
+                            if isEditMode {
+                                HStack(spacing: 4) {
+                                    TextField("기술", text: Binding(
+                                        get: { project.techStack.indices.contains(index) ? project.techStack[index] : "" },
+                                        set: {
+                                            if project.techStack.indices.contains(index) {
+                                                project.techStack[index] = $0
+                                            }
+                                        }
+                                    ))
                                     .textFieldStyle(.roundedBorder)
                                     .frame(width: 80)
-                                Button {
-                                    project.techStack.remove(at: index)
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.red)
+                                    Button {
+                                        if project.techStack.indices.contains(index) {
+                                            project.techStack.remove(at: index)
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.red)
+                                    }
                                 }
+                            } else {
+                                Text(tech)
+                                    .font(.caption)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.blue.opacity(0.1))
+                                    .foregroundColor(.blue)
+                                    .clipShape(Capsule())
                             }
-                        } else {
-                            Text(project.techStack[index])
-                                .font(.caption)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.blue.opacity(0.1))
-                                .foregroundColor(.blue)
-                                .clipShape(Capsule())
                         }
                     }
                 }
@@ -486,21 +507,32 @@ struct ProjectDetailView: View {
                     }
                 }
                 
-                ForEach(project.keyFeatures.indices, id: \.self) { index in
-                    HStack {
-                        if isEditMode {
-                            TextField("기능", text: $project.keyFeatures[index])
+                ForEach(Array(project.keyFeatures.enumerated()), id: \.offset) { index, feature in
+                    if index < project.keyFeatures.count {
+                        HStack {
+                            if isEditMode {
+                                TextField("기능", text: Binding(
+                                    get: { project.keyFeatures.indices.contains(index) ? project.keyFeatures[index] : "" },
+                                    set: {
+                                        if project.keyFeatures.indices.contains(index) {
+                                            project.keyFeatures[index] = $0
+                                        }
+                                    }
+                                ))
                                 .textFieldStyle(.roundedBorder)
-                            Button {
-                                project.keyFeatures.remove(at: index)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
-                            }
-                        } else {
-                            HStack(alignment: .top, spacing: 8) {
-                                Text("•")
-                                Text(project.keyFeatures[index])
+                                Button {
+                                    if project.keyFeatures.indices.contains(index) {
+                                        project.keyFeatures.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                            } else {
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text("•")
+                                    Text(feature)
+                                }
                             }
                         }
                     }
@@ -528,8 +560,8 @@ struct ProjectDetailView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(project.images.indices, id: \.self) { index in
-                        if let uiImage = UIImage(data: project.images[index]) {
+                    ForEach(Array(project.images.enumerated()), id: \.offset) { index, imageData in
+                        if index < project.images.count, let uiImage = UIImage(data: imageData) {
                             ZStack(alignment: .topTrailing) {
                                 Image(uiImage: uiImage)
                                     .resizable()
@@ -539,7 +571,9 @@ struct ProjectDetailView: View {
                                 
                                 if isEditMode {
                                     Button {
-                                        project.images.remove(at: index)
+                                        if project.images.indices.contains(index) {
+                                            project.images.remove(at: index)
+                                        }
                                     } label: {
                                         Image(systemName: "xmark.circle.fill")
                                             .foregroundStyle(.white, .red)
@@ -601,27 +635,38 @@ struct ProjectDetailView: View {
             }
             
             FlowLayout(spacing: 8) {
-                ForEach(project.tags.indices, id: \.self) { index in
-                    if isEditMode {
-                        HStack(spacing: 4) {
-                            TextField("태그", text: $project.tags[index])
+                ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
+                    if index < project.tags.count {
+                        if isEditMode {
+                            HStack(spacing: 4) {
+                                TextField("태그", text: Binding(
+                                    get: { project.tags.indices.contains(index) ? project.tags[index] : "" },
+                                    set: {
+                                        if project.tags.indices.contains(index) {
+                                            project.tags[index] = $0
+                                        }
+                                    }
+                                ))
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 80)
-                            Button {
-                                project.tags.remove(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.red)
+                                Button {
+                                    if project.tags.indices.contains(index) {
+                                        project.tags.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
                             }
+                        } else {
+                            Text("#\(tag)")
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.purple.opacity(0.1))
+                                .foregroundColor(.purple)
+                                .clipShape(Capsule())
                         }
-                    } else {
-                        Text("#\(project.tags[index])")
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.purple.opacity(0.1))
-                            .foregroundColor(.purple)
-                            .clipShape(Capsule())
                     }
                 }
             }
