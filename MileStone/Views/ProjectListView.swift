@@ -18,15 +18,6 @@ struct ProjectListView: View {
             ForEach(projects) { project in
                 NavigationLink(destination: ProjectDetailView(project: project)) {
                     HStack(spacing: 12) {
-                        // 썸네일 이미지
-                        if let thumbnailData = project.thumbnail,
-                           let uiImage = UIImage(data: thumbnailData) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 50, height: 50)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
                         
                         // 텍스트 정보
                         VStack(alignment: .leading, spacing: 4) {
@@ -43,6 +34,19 @@ struct ProjectListView: View {
                                     .foregroundColor(.secondary)
                                     .lineLimit(1)
                             }
+                        }
+                        
+                        // 이미지를 오른쪽 끝으로 밀어내는 Spacer
+                        Spacer()
+                        
+                        // 썸네일 이미지
+                        if let thumbnailData = project.thumbnail,
+                           let uiImage = UIImage(data: thumbnailData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 50, height: 50)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
                     .frame(height: 30)
