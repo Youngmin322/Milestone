@@ -38,16 +38,16 @@ struct ProjectDetailView: View {
         if hasDetailsContent {
             sections.append(.details)
         }
-        if !project.images.isEmpty {
+        if hasVisualsContent {
             sections.append(.visuals)
         }
         if hasLinksContent {
             sections.append(.links)
         }
-        if !project.notes.isEmpty {
+        if hasNotesContent {
             sections.append(.notes)
         }
-        if !project.tags.isEmpty {
+        if hasTagsContent {
             sections.append(.tags)
         }
         
@@ -55,15 +55,34 @@ struct ProjectDetailView: View {
     }
     
     private var hasOverviewContent: Bool {
-        !project.problem.isEmpty || !project.solution.isEmpty || !project.goals.isEmpty
+        !project.problem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || 
+        !project.solution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || 
+        !project.goals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        expandedSections.contains("프로젝트 개요")
     }
     
     private var hasDetailsContent: Bool {
-        !project.keyFeatures.isEmpty || !project.challenges.isEmpty
+        !project.keyFeatures.isEmpty || !project.challenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        expandedSections.contains("상세 내용")
+    }
+    
+    private var hasVisualsContent: Bool {
+        !project.images.isEmpty || expandedSections.contains("비주얼 자료")
     }
     
     private var hasLinksContent: Bool {
-        project.githubURL != nil || project.liveURL != nil || project.figmaURL != nil
+        (project.githubURL != nil && !project.githubURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
+        (project.liveURL != nil && !project.liveURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
+        (project.figmaURL != nil && !project.figmaURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
+        expandedSections.contains("링크")
+    }
+    
+    private var hasNotesContent: Bool {
+        !project.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || expandedSections.contains("메모 & 회고")
+    }
+    
+    private var hasTagsContent: Bool {
+        !project.tags.isEmpty || expandedSections.contains("태그")
     }
     
     // 추가 가능한 섹션들
@@ -75,13 +94,13 @@ struct ProjectDetailView: View {
             case .details:
                 return !hasDetailsContent
             case .visuals:
-                return project.images.isEmpty
+                return !hasVisualsContent
             case .links:
                 return !hasLinksContent
             case .notes:
-                return project.notes.isEmpty
+                return !hasNotesContent
             case .tags:
-                return project.tags.isEmpty
+                return !hasTagsContent
             }
         }
     }
@@ -185,27 +204,32 @@ struct ProjectDetailView: View {
     // MARK: - 섹션 추가 로직
     private func addSection(_ section: OptionalSection) {
         withAnimation {
+            // 섹션을 expandedSections에 추가하여 활성화
+            expandedSections.insert(section.rawValue)
+            
+            // 각 섹션별로 필요한 최소한의 초기화 작업
             switch section {
             case .overview:
-                if project.problem.isEmpty {
-                    project.problem = ""
-                }
+                // 프로젝트 개요는 expandedSections 체크로 표시됨
+                break
             case .details:
                 if project.keyFeatures.isEmpty {
                     project.keyFeatures = [""]
                 }
             case .visuals:
+                // 비주얼 섹션은 expandedSections 체크로 표시됨
                 break
             case .links:
-                if project.githubURL == nil {
-                    project.githubURL = ""
-                }
+                // 링크 섹션은 expandedSections 체크로 표시됨
+                break
             case .notes:
-                project.notes = ""
+                // 메모 섹션은 expandedSections 체크로 표시됨
+                break
             case .tags:
-                project.tags = [""]
+                if project.tags.isEmpty {
+                    project.tags = [""]
+                }
             }
-            expandedSections.insert(section.rawValue)
         }
     }
     
@@ -445,74 +469,126 @@ struct ProjectDetailView: View {
     // MARK: - 프로젝트 개요
     private var overviewSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            subsectionView(title: "문제 정의", text: $project.problem, placeholder: "어떤 문제를 해결하고자 했나요?")
-            subsectionView(title: "솔루션", text: $project.solution, placeholder: "어떻게 해결했나요?")
-            subsectionView(title: "목표 및 결과", text: $project.goals, placeholder: "목표와 달성한 결과는?")
+            if isEditMode || !project.problem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || 
+               !project.solution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+               !project.goals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                subsectionView(title: "문제 정의", text: $project.problem, placeholder: "어떤 문제를 해결하고자 했나요?")
+                subsectionView(title: "솔루션", text: $project.solution, placeholder: "어떻게 해결했나요?")
+                subsectionView(title: "목표 및 결과", text: $project.goals, placeholder: "목표와 달성한 결과는?")
+            } else {
+                Text("프로젝트 개요를 추가해보세요.")
+                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+            }
         }
     }
     
     // MARK: - 상세 내용
     private var detailsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("주요 기능")
-                        .font(.headline)
-                    Spacer()
-                    if isEditMode {
-                        Button {
-                            project.keyFeatures.append("")
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
+            if isEditMode || !project.keyFeatures.isEmpty || !project.challenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("주요 기능")
+                            .font(.headline)
+                        Spacer()
+                        if isEditMode {
+                            Button {
+                                project.keyFeatures.append("")
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                            }
                         }
                     }
-                }
-                
-                ForEach(Array(project.keyFeatures.enumerated()), id: \.offset) { index, feature in
-                    if index < project.keyFeatures.count {
-                        HStack {
-                            if isEditMode {
-                                TextField("기능", text: Binding(
-                                    get: { project.keyFeatures.indices.contains(index) ? project.keyFeatures[index] : "" },
-                                    set: {
-                                        if project.keyFeatures.indices.contains(index) {
-                                            project.keyFeatures[index] = $0
+                    
+                    ForEach(Array(project.keyFeatures.enumerated()), id: \.offset) { index, feature in
+                        if index < project.keyFeatures.count {
+                            HStack {
+                                if isEditMode {
+                                    TextField("기능", text: Binding(
+                                        get: { project.keyFeatures.indices.contains(index) ? project.keyFeatures[index] : "" },
+                                        set: {
+                                            if project.keyFeatures.indices.contains(index) {
+                                                project.keyFeatures[index] = $0
+                                            }
                                         }
+                                    ))
+                                    Button {
+                                        if project.keyFeatures.indices.contains(index) {
+                                            project.keyFeatures.remove(at: index)
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.red)
                                     }
-                                ))
-                                Button {
-                                    if project.keyFeatures.indices.contains(index) {
-                                        project.keyFeatures.remove(at: index)
-                                    }
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.red)
+                                } else {
+                                    Text("• \(feature)")
                                 }
-                            } else {
-                                Text("• \(feature)")
                             }
                         }
                     }
                 }
+                
+                subsectionView(title: "도전 과제", text: $project.challenges, placeholder: "개발 과정에서 겪은 어려움")
+            } else {
+                Text("상세 내용을 추가해보세요.")
+                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
             }
-            
-            subsectionView(title: "도전 과제", text: $project.challenges, placeholder: "개발 과정에서 겪은 어려움")
         }
     }
     
     // MARK: - 비주얼 자료
     private var visualsSection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Array(project.images.enumerated()), id: \.offset) { index, data in
-                    if let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+        VStack(alignment: .leading, spacing: 12) {
+            if isEditMode {
+                PhotosPicker(selection: $selectedImages, matching: .images) {
+                    HStack {
+                        Image(systemName: "photo.badge.plus")
+                            .foregroundColor(.blue)
+                        Text("이미지 추가")
+                            .foregroundColor(.blue)
+                        Spacer()
                     }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
+            }
+            
+            if !project.images.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(Array(project.images.enumerated()), id: \.offset) { index, data in
+                            if let uiImage = UIImage(data: data) {
+                                ZStack(alignment: .topTrailing) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 120, height: 120)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    
+                                    if isEditMode {
+                                        Button {
+                                            project.images.remove(at: index)
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundStyle(.red)
+                                                .background(Color.white, in: Circle())
+                                        }
+                                        .offset(x: 8, y: -8)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
+            } else if !isEditMode {
+                Text("추가된 이미지가 없습니다.")
+                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
             }
         }
     }
@@ -520,38 +596,148 @@ struct ProjectDetailView: View {
     // MARK: - 링크
     private var linksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if let githubURL = project.githubURL, !githubURL.isEmpty {
-                LinkRow(title: "GitHub", url: githubURL)
-            }
-            if let liveURL = project.liveURL, !liveURL.isEmpty {
-                LinkRow(title: "Live Site", url: liveURL)
-            }
-            if let figmaURL = project.figmaURL, !figmaURL.isEmpty {
-                LinkRow(title: "Figma", url: figmaURL)
+            if isEditMode {
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("GitHub")
+                            .font(.subheadline)
+                        Spacer()
+                        TextField("GitHub URL", text: Binding(
+                            get: { project.githubURL ?? "" },
+                            set: { project.githubURL = $0.isEmpty ? nil : $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    HStack {
+                        Text("Live Site")
+                            .font(.subheadline)
+                        Spacer()
+                        TextField("Live Site URL", text: Binding(
+                            get: { project.liveURL ?? "" },
+                            set: { project.liveURL = $0.isEmpty ? nil : $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                    }
+                    
+                    HStack {
+                        Text("Figma")
+                            .font(.subheadline)
+                        Spacer()
+                        TextField("Figma URL", text: Binding(
+                            get: { project.figmaURL ?? "" },
+                            set: { project.figmaURL = $0.isEmpty ? nil : $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                    }
+                }
+            } else {
+                if let githubURL = project.githubURL, !githubURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    LinkRow(title: "GitHub", url: githubURL)
+                }
+                if let liveURL = project.liveURL, !liveURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    LinkRow(title: "Live Site", url: liveURL)
+                }
+                if let figmaURL = project.figmaURL, !figmaURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    LinkRow(title: "Figma", url: figmaURL)
+                }
+                
+                if !hasLinksContent {
+                    Text("링크를 추가해보세요.")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                }
             }
         }
     }
     
     // MARK: - 메모 & 회고
     private var notesSection: some View {
-        TextEditor(text: $project.notes)
-            .frame(minHeight: 100)
-            .padding(8)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+        VStack(alignment: .leading, spacing: 8) {
+            if isEditMode {
+                TextEditor(text: $project.notes)
+                    .frame(minHeight: 100)
+                    .padding(8)
+                    .background(Color(.systemGray6))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                if !project.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(project.notes)
+                        .font(.body)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    Text("메모나 회고를 추가해보세요.")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                }
+            }
+        }
     }
     
     // MARK: - 태그
     private var tagsSection: some View {
-        FlowLayout(spacing: 8) {
-            ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
-                Text(tag)
-                    .font(.caption)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.green.opacity(0.1))
-                    .foregroundColor(.green)
-                    .clipShape(Capsule())
+        VStack(alignment: .leading, spacing: 8) {
+            if isEditMode {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("태그")
+                            .font(.headline)
+                        Spacer()
+                        Button {
+                            project.tags.append("")
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    
+                    ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
+                        if index < project.tags.count {
+                            HStack {
+                                TextField("태그", text: Binding(
+                                    get: { project.tags.indices.contains(index) ? project.tags[index] : "" },
+                                    set: {
+                                        if project.tags.indices.contains(index) {
+                                            project.tags[index] = $0
+                                        }
+                                    }
+                                ))
+                                .textFieldStyle(.roundedBorder)
+                                
+                                Button {
+                                    if project.tags.indices.contains(index) {
+                                        project.tags.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                FlowLayout(spacing: 8) {
+                    ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
+                        if !tag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Text(tag)
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.green.opacity(0.1))
+                                .foregroundColor(.green)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+                
+                if project.tags.isEmpty || project.tags.allSatisfy({ $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+                    Text("태그를 추가해보세요.")
+                        .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                }
             }
         }
     }
