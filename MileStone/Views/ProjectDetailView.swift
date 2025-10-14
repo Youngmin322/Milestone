@@ -223,30 +223,33 @@ struct ProjectDetailView: View {
         }
     }
     
+    // MARK: - 섹션 삭제 로직
     private func deleteSection(_ section: OptionalSection) {
         withAnimation {
             // 먼저 expandedSections에서 제거
             expandedSections.remove(section.rawValue)
             
-            // 그 다음 데이터 삭제
-            switch section {
-            case .overview:
-                project.problem = ""
-                project.solution = ""
-                project.goals = ""
-            case .details:
-                project.keyFeatures = []
-                project.challenges = ""
-            case .visuals:
-                project.images = []
-            case .links:
-                project.githubURL = nil
-                project.liveURL = nil
-                project.figmaURL = nil
-            case .notes:
-                project.notes = ""
-            case .tags:
-                project.tags = []
+            // 약간의 지연을 주고 데이터 삭제
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                switch section {
+                case .overview:
+                    self.project.problem = ""
+                    self.project.solution = ""
+                    self.project.goals = ""
+                case .details:
+                    self.project.keyFeatures = []
+                    self.project.challenges = ""
+                case .visuals:
+                    self.project.images = []
+                case .links:
+                    self.project.githubURL = nil
+                    self.project.liveURL = nil
+                    self.project.figmaURL = nil
+                case .notes:
+                    self.project.notes = ""
+                case .tags:
+                    self.project.tags = []
+                }
             }
         }
     }
@@ -261,7 +264,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    deleteSection(.overview)  // 변경
+                    deleteSection(.overview)
                 } : nil
             ) {
                 overviewSection
@@ -272,12 +275,11 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    deleteSection(.details)  // 변경
+                    deleteSection(.details)
                 } : nil
             ) {
                 detailsSection
             }
-        // 나머지 case들도 동일하게 수정...
         case .visuals:
             expandableSection(
                 id: section.rawValue,
@@ -437,27 +439,38 @@ struct ProjectDetailView: View {
                 }
                 
                 FlowLayout(spacing: 8) {
-                    ForEach(project.techStack.indices, id: \.self) { index in
-                        if isEditMode {
-                            HStack(spacing: 4) {
-                                TextField("기술", text: $project.techStack[index])
+                    ForEach(Array(project.techStack.enumerated()), id: \.offset) { index, tech in
+                        if index < project.techStack.count {
+                            if isEditMode {
+                                HStack(spacing: 4) {
+                                    TextField("기술", text: Binding(
+                                        get: { project.techStack.indices.contains(index) ? project.techStack[index] : "" },
+                                        set: {
+                                            if project.techStack.indices.contains(index) {
+                                                project.techStack[index] = $0
+                                            }
+                                        }
+                                    ))
                                     .textFieldStyle(.roundedBorder)
                                     .frame(width: 80)
-                                Button {
-                                    project.techStack.remove(at: index)
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundStyle(.red)
+                                    Button {
+                                        if project.techStack.indices.contains(index) {
+                                            project.techStack.remove(at: index)
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.red)
+                                    }
                                 }
+                            } else {
+                                Text(tech)
+                                    .font(.caption)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.blue.opacity(0.1))
+                                    .foregroundColor(.blue)
+                                    .clipShape(Capsule())
                             }
-                        } else {
-                            Text(project.techStack[index])
-                                .font(.caption)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.blue.opacity(0.1))
-                                .foregroundColor(.blue)
-                                .clipShape(Capsule())
                         }
                     }
                 }
@@ -494,21 +507,32 @@ struct ProjectDetailView: View {
                     }
                 }
                 
-                ForEach(project.keyFeatures.indices, id: \.self) { index in
-                    HStack {
-                        if isEditMode {
-                            TextField("기능", text: $project.keyFeatures[index])
+                ForEach(Array(project.keyFeatures.enumerated()), id: \.offset) { index, feature in
+                    if index < project.keyFeatures.count {
+                        HStack {
+                            if isEditMode {
+                                TextField("기능", text: Binding(
+                                    get: { project.keyFeatures.indices.contains(index) ? project.keyFeatures[index] : "" },
+                                    set: {
+                                        if project.keyFeatures.indices.contains(index) {
+                                            project.keyFeatures[index] = $0
+                                        }
+                                    }
+                                ))
                                 .textFieldStyle(.roundedBorder)
-                            Button {
-                                project.keyFeatures.remove(at: index)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
-                            }
-                        } else {
-                            HStack(alignment: .top, spacing: 8) {
-                                Text("•")
-                                Text(project.keyFeatures[index])
+                                Button {
+                                    if project.keyFeatures.indices.contains(index) {
+                                        project.keyFeatures.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                            } else {
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text("•")
+                                    Text(feature)
+                                }
                             }
                         }
                     }
@@ -536,8 +560,8 @@ struct ProjectDetailView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(project.images.indices, id: \.self) { index in
-                        if let uiImage = UIImage(data: project.images[index]) {
+                    ForEach(Array(project.images.enumerated()), id: \.offset) { index, imageData in
+                        if index < project.images.count, let uiImage = UIImage(data: imageData) {
                             ZStack(alignment: .topTrailing) {
                                 Image(uiImage: uiImage)
                                     .resizable()
@@ -547,7 +571,9 @@ struct ProjectDetailView: View {
                                 
                                 if isEditMode {
                                     Button {
-                                        project.images.remove(at: index)
+                                        if project.images.indices.contains(index) {
+                                            project.images.remove(at: index)
+                                        }
                                     } label: {
                                         Image(systemName: "xmark.circle.fill")
                                             .foregroundStyle(.white, .red)
@@ -609,27 +635,38 @@ struct ProjectDetailView: View {
             }
             
             FlowLayout(spacing: 8) {
-                ForEach(project.tags.indices, id: \.self) { index in
-                    if isEditMode {
-                        HStack(spacing: 4) {
-                            TextField("태그", text: $project.tags[index])
+                ForEach(Array(project.tags.enumerated()), id: \.offset) { index, tag in
+                    if index < project.tags.count {
+                        if isEditMode {
+                            HStack(spacing: 4) {
+                                TextField("태그", text: Binding(
+                                    get: { project.tags.indices.contains(index) ? project.tags[index] : "" },
+                                    set: {
+                                        if project.tags.indices.contains(index) {
+                                            project.tags[index] = $0
+                                        }
+                                    }
+                                ))
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 80)
-                            Button {
-                                project.tags.remove(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.red)
+                                Button {
+                                    if project.tags.indices.contains(index) {
+                                        project.tags.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.red)
+                                }
                             }
+                        } else {
+                            Text("#\(tag)")
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.purple.opacity(0.1))
+                                .foregroundColor(.purple)
+                                .clipShape(Capsule())
                         }
-                    } else {
-                        Text("#\(project.tags[index])")
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.purple.opacity(0.1))
-                            .foregroundColor(.purple)
-                            .clipShape(Capsule())
                     }
                 }
             }
