@@ -45,6 +45,8 @@ final class Project {
     var tags: [String]
     var isFavorite: Bool
     
+    var enabledSections: Set<String> = []
+    
     init(
         title: String,
         tagline: String = "",

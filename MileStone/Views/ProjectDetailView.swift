@@ -223,6 +223,34 @@ struct ProjectDetailView: View {
         }
     }
     
+    private func deleteSection(_ section: OptionalSection) {
+        withAnimation {
+            // 먼저 expandedSections에서 제거
+            expandedSections.remove(section.rawValue)
+            
+            // 그 다음 데이터 삭제
+            switch section {
+            case .overview:
+                project.problem = ""
+                project.solution = ""
+                project.goals = ""
+            case .details:
+                project.keyFeatures = []
+                project.challenges = ""
+            case .visuals:
+                project.images = []
+            case .links:
+                project.githubURL = nil
+                project.liveURL = nil
+                project.figmaURL = nil
+            case .notes:
+                project.notes = ""
+            case .tags:
+                project.tags = []
+            }
+        }
+    }
+    
     // MARK: - 섹션 뷰 생성
     @ViewBuilder
     private func sectionView(for section: OptionalSection) -> some View {
@@ -233,11 +261,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.problem = ""
-                        project.solution = ""
-                        project.goals = ""
-                    }
+                    deleteSection(.overview)  // 변경
                 } : nil
             ) {
                 overviewSection
@@ -248,23 +272,19 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.keyFeatures = []
-                        project.challenges = ""
-                    }
+                    deleteSection(.details)  // 변경
                 } : nil
             ) {
                 detailsSection
             }
+        // 나머지 case들도 동일하게 수정...
         case .visuals:
             expandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.images = []
-                    }
+                    deleteSection(.visuals)
                 } : nil
             ) {
                 visualsSection
@@ -275,11 +295,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.githubURL = nil
-                        project.liveURL = nil
-                        project.figmaURL = nil
-                    }
+                    deleteSection(.links)
                 } : nil
             ) {
                 linksSection
@@ -290,9 +306,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.notes = ""
-                    }
+                    deleteSection(.notes)
                 } : nil
             ) {
                 notesSection
@@ -303,9 +317,7 @@ struct ProjectDetailView: View {
                 title: section.rawValue,
                 icon: section.icon,
                 onDelete: isEditMode ? {
-                    withAnimation {
-                        project.tags = []
-                    }
+                    deleteSection(.tags)
                 } : nil
             ) {
                 tagsSection
@@ -353,27 +365,32 @@ struct ProjectDetailView: View {
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 if let thumbnailData = project.thumbnail,
                    let uiImage = UIImage(data: thumbnailData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                } else {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 200)
-                        .overlay(
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo.badge.plus")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.gray)
-                                Text("대표 이미지 추가")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-                        )
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .disabled(!isEditMode)
+                } else if isEditMode {
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 200)
+                            .overlay(
+                                VStack(spacing: 8) {
+                                    Image(systemName: "photo.badge.plus")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.gray)
+                                    Text("대표 이미지 추가")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            )
+                    }
                 }
             }
             .disabled(!isEditMode)
