@@ -105,5 +105,4 @@ enum ProjectStatus: String, Codable {
 enum ProjectType: String, Codable {
     case personal = "개인"
     case team = "팀"
-    case client = "클라이언트"
 }

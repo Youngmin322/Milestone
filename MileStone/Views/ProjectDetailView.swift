@@ -403,7 +403,6 @@ struct ProjectDetailView: View {
                     Picker("", selection: $project.projectType) {
                         Text("개인").tag(ProjectType.personal)
                         Text("팀").tag(ProjectType.team)
-                        Text("클라이언트").tag(ProjectType.client)
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 200)
