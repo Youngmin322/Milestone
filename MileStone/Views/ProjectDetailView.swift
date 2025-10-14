@@ -109,42 +109,34 @@ struct ProjectDetailView: View {
                 ForEach(activeSections) { section in
                     sectionView(for: section)
                 }
-                
-                // MARK: - 섹션 추가 버튼 (편집 모드일 때만)
-                if isEditMode && !availableSectionsToAdd.isEmpty {
-                    Button {
-                        showingAddSectionSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                            Text("섹션 추가하기")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .foregroundColor(.blue)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
             }
             .padding()
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isEditMode.toggle()
-                } label: {
-                    Text(isEditMode ? "완료" : "편집")
-                }
-            }
-            
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    project.isFavorite.toggle()
-                } label: {
-                    Image(systemName: project.isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(project.isFavorite ? .yellow : .gray)
+                HStack(spacing: 16) {
+                    Button {
+                        project.isFavorite.toggle()
+                    } label: {
+                        Image(systemName: project.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(project.isFavorite ? .yellow : .gray)
+                    }
+                    
+                    // 편집 모드일 때만 + 버튼 표시
+                    if isEditMode && !availableSectionsToAdd.isEmpty {
+                        Button {
+                            showingAddSectionSheet = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                    }
+                    
+                    Button {
+                        isEditMode.toggle()
+                    } label: {
+                        Text(isEditMode ? "완료" : "편집")
+                    }
                 }
             }
         }
