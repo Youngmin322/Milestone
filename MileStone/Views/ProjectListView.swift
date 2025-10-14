@@ -24,7 +24,7 @@ struct ProjectListView: View {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 60, height: 60)
+                                .frame(width: 50, height: 50)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                         
@@ -42,6 +42,7 @@ struct ProjectListView: View {
                             }
                         }
                     }
+                    .frame(height: 30)
                 }
             }
             .onDelete { offsets in
@@ -74,6 +75,35 @@ struct ProjectListView: View {
 }
 
 #Preview {
-    ProjectListView()
-        .modelContainer(for: Project.self, inMemory: true)
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: Project.self, configurations: config)
+    
+    // 샘플 프로젝트 추가
+    let project1 = Project(
+        title: "iOS 날씨 앱",
+        projectDescription: "SwiftUI로 만든 날씨 예보 앱",
+        techStack: ["SwiftUI", "Combine", "WeatherKit"],
+        startDate: Date()
+    )
+    
+    let project2 = Project(
+        title: "투두 리스트",
+        projectDescription: "할 일 관리 앱",
+        techStack: ["Swift", "CoreData"],
+        startDate: Date().addingTimeInterval(-86400 * 30)
+    )
+    
+    let project3 = Project(
+        title: "포트폴리오 웹사이트",
+        projectDescription: "개인 포트폴리오",
+        techStack: [],
+        startDate: Date().addingTimeInterval(-86400 * 60)
+    )
+    
+    container.mainContext.insert(project1)
+    container.mainContext.insert(project2)
+    container.mainContext.insert(project3)
+    
+    return ProjectListView()
+        .modelContainer(container)
 }
