@@ -635,6 +635,7 @@ struct ProjectDetailView: View {
                     Text(text.wrappedValue)
                         .font(.body)
                         .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text("-")
                         .foregroundStyle(.secondary)
@@ -642,7 +643,6 @@ struct ProjectDetailView: View {
             }
         }
     }
-    
     // MARK: - Info Row
     private func infoRow(icon: String, title: String, value: Binding<String>) -> some View {
         HStack {
