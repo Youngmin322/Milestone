@@ -18,7 +18,7 @@ struct ProjectDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                heroSection
+                HeroSectionView(viewModel: viewModel)
                 infoCard
                 
                 ForEach(viewModel.activeSections) { section in
@@ -107,124 +107,66 @@ struct ProjectDetailView: View {
     private func sectionView(for section: ProjectDetailViewModel.OptionalSection) -> some View {
         switch section {
         case .overview:
-            expandableSection(
+            ExpandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
+                isExpanded: viewModel.isSectionExpanded(section.rawValue),
+                onToggle: { viewModel.toggleSection(section.rawValue) },
                 onDelete: viewModel.isEditMode ? { viewModel.deleteSection(.overview) } : nil
             ) {
                 overviewSection
             }
         case .details:
-            expandableSection(
+            ExpandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
+                isExpanded: viewModel.isSectionExpanded(section.rawValue),
+                onToggle: { viewModel.toggleSection(section.rawValue) },
                 onDelete: viewModel.isEditMode ? { viewModel.deleteSection(.details) } : nil
             ) {
                 detailsSection
             }
         case .visuals:
-            expandableSection(
+            ExpandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
+                isExpanded: viewModel.isSectionExpanded(section.rawValue),
+                onToggle: { viewModel.toggleSection(section.rawValue) },
                 onDelete: viewModel.isEditMode ? { viewModel.deleteSection(.visuals) } : nil
             ) {
                 visualsSection
             }
         case .links:
-            expandableSection(
+            ExpandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
+                isExpanded: viewModel.isSectionExpanded(section.rawValue),
+                onToggle: { viewModel.toggleSection(section.rawValue) },
                 onDelete: viewModel.isEditMode ? { viewModel.deleteSection(.links) } : nil
             ) {
                 linksSection
             }
         case .notes:
-            expandableSection(
+            ExpandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
+                isExpanded: viewModel.isSectionExpanded(section.rawValue),
+                onToggle: { viewModel.toggleSection(section.rawValue) },
                 onDelete: viewModel.isEditMode ? { viewModel.deleteSection(.notes) } : nil
             ) {
                 notesSection
             }
         case .tags:
-            expandableSection(
+            ExpandableSection(
                 id: section.rawValue,
                 title: section.rawValue,
+                isExpanded: viewModel.isSectionExpanded(section.rawValue),
+                onToggle: { viewModel.toggleSection(section.rawValue) },
                 onDelete: viewModel.isEditMode ? { viewModel.deleteSection(.tags) } : nil
             ) {
                 tagsSection
             }
         }
-    }
-    
-    // MARK: - Hero Section
-    private var heroSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    if viewModel.isEditMode {
-                        TextField("프로젝트 제목", text: $viewModel.project.title)
-                            .font(.title.bold())
-                    } else {
-                        Text(viewModel.project.title)
-                            .font(.title.bold())
-                    }
-                    
-                    if viewModel.isEditMode {
-                        TextField("한 줄 설명", text: $viewModel.project.tagline)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    } else if !viewModel.project.tagline.isEmpty {
-                        Text(viewModel.project.tagline)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                
-                Spacer()
-                statusBadge
-            }
-            
-            HStack {
-                Image(systemName: "calendar")
-                    .foregroundStyle(.secondary)
-                Text(viewModel.dateRangeText)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            
-            thumbnailPicker
-        }
-    }
-    
-    private var thumbnailPicker: some View {
-        PhotosPicker(selection: $viewModel.selectedPhoto, matching: .images) {
-            if let thumbnailData = viewModel.project.thumbnail,
-               let uiImage = UIImage(data: thumbnailData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            } else if viewModel.isEditMode {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .overlay(
-                        VStack(spacing: 8) {
-                            Image(systemName: "photo.badge.plus")
-                                .font(.system(size: 40))
-                                .foregroundColor(.gray)
-                            Text("대표 이미지 추가")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    )
-            }
-        }
-        .disabled(!viewModel.isEditMode)
     }
     
     // MARK: - Info Card
@@ -555,61 +497,6 @@ struct ProjectDetailView: View {
         }
     }
     
-    // MARK: - Expandable Section
-    private func expandableSection<Content: View>(
-        id: String,
-        title: String,
-        onDelete: (() -> Void)? = nil,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 8) {
-                Button {
-                    viewModel.toggleSection(id)
-                } label: {
-                    Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                }
-                .buttonStyle(.plain)
-                
-                Spacer()
-                
-                if let onDelete = onDelete {
-                    Button {
-                        onDelete()
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-                    .padding(.trailing, 4)
-                }
-                
-                Button {
-                    viewModel.toggleSection(id)
-                } label: {
-                    Image(systemName: viewModel.isSectionExpanded(id) ? "chevron.up" : "chevron.down")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.bottom, 2)
-            
-            if viewModel.isSectionExpanded(id) {
-                VStack(alignment: .leading, spacing: 12) {
-                    content()
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
-            }
-        }
-        .padding(.top, 4)
-    }
-    
     // MARK: - Subsection View
     private func subsectionView(title: String, text: Binding<String>, placeholder: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -643,6 +530,7 @@ struct ProjectDetailView: View {
             }
         }
     }
+    
     // MARK: - Info Row
     private func infoRow(icon: String, title: String, value: Binding<String>) -> some View {
         HStack {
@@ -661,14 +549,60 @@ struct ProjectDetailView: View {
     }
     
     // MARK: - Status Badge
-    private var statusBadge: some View {
-        Text(viewModel.project.status.rawValue)
-            .font(.caption)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(viewModel.statusColor.opacity(0.1))
-            .foregroundColor(viewModel.statusColor)
-            .clipShape(Capsule())
+}
+
+// MARK: - Expandable Section
+struct ExpandableSection<Content: View>: View {
+    let id: String
+    let title: String
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onDelete: (() -> Void)?
+    @ViewBuilder let content: Content
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 8) {
+                Button(action: onToggle) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+                
+                if let onDelete = onDelete {
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    .padding(.trailing, 4)
+                }
+                
+                Button(action: onToggle) {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.bottom, 2)
+            
+            // ✅ 핵심: 자연스러운 펼침/접힘 애니메이션
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 12) {
+                    content
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            }
+        }
+        .padding(.top, 4)
+        .animation(.easeInOut(duration: 0.25), value: isExpanded)
     }
 }
 
