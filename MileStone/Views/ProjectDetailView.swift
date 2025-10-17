@@ -429,7 +429,6 @@ struct ProjectDetailView: View {
                     Text(viewModel.project.notes)
                         .font(.body)
                         .padding()
-                        .scrollContentBackground(.hidden)
                         .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
@@ -507,8 +506,8 @@ struct ProjectDetailView: View {
             if viewModel.isEditMode {
                 TextEditor(text: text)
                     .frame(minHeight: 80)
-                    .padding(6)
                     .scrollContentBackground(.hidden)
+                    .padding(8)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
@@ -516,6 +515,7 @@ struct ProjectDetailView: View {
                             if text.wrappedValue.isEmpty {
                                 Text(placeholder)
                                     .foregroundColor(.gray)
+                                    .padding(.horizontal, 12)
                                     .padding(8)
                             }
                         }, alignment: .topLeading
