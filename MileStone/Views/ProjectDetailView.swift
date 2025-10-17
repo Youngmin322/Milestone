@@ -421,21 +421,14 @@ struct ProjectDetailView: View {
             if viewModel.isEditMode {
                 TextEditor(text: $viewModel.project.notes)
                     .frame(minHeight: 100)
+                    .scrollContentBackground(.hidden)
                     .padding(8)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                if !viewModel.project.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(viewModel.project.notes)
-                        .font(.body)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else {
-                    Text("메모나 회고를 추가해보세요.")
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                }
+                    .overlay(
+                        Group {
+                        }, alignment: .topLeading
+                    )
             }
         }
     }
