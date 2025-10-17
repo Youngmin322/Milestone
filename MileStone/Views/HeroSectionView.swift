@@ -20,34 +20,48 @@ struct HeroSectionView: View {
     }
     
     private var thumbnailView: some View {
-        PhotosPicker(selection: $viewModel.selectedPhoto, matching: .images) {
-            if let thumbnailData = viewModel.project.thumbnail,
-               let uiImage = UIImage(data: thumbnailData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            } else {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .overlay(
-                        VStack(spacing: 8) {
-                            Image(systemName: "photo.badge.plus")
-                                .font(.system(size: 40))
-                                .foregroundColor(.gray)
-                            Text("대표 이미지 추가")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    )
-            }
-        }
-        .disabled(!viewModel.isEditMode)
-    }
+        Group {
+                   if let thumbnailData = viewModel.project.thumbnail,
+                      let uiImage = UIImage(data: thumbnailData) {
+                       // 썸네일이 있을 때
+                       if viewModel.isEditMode {
+                           PhotosPicker(selection: $viewModel.selectedPhoto, matching: .images) {
+                               Image(uiImage: uiImage)
+                                   .resizable()
+                                   .scaledToFill()
+                                   .frame(maxWidth: .infinity)
+                                   .frame(height: 200)
+                                   .clipShape(RoundedRectangle(cornerRadius: 16))
+                           }
+                       } else {
+                           Image(uiImage: uiImage)
+                               .resizable()
+                               .scaledToFill()
+                               .frame(maxWidth: .infinity)
+                               .frame(height: 200)
+                               .clipShape(RoundedRectangle(cornerRadius: 16))
+                       }
+                   } else if viewModel.isEditMode {
+                       // 썸네일이 없고 편집 모드일 때만 추가 UI 표시
+                       PhotosPicker(selection: $viewModel.selectedPhoto, matching: .images) {
+                           RoundedRectangle(cornerRadius: 16)
+                               .fill(Color.gray.opacity(0.2))
+                               .frame(maxWidth: .infinity)
+                               .frame(height: 200)
+                               .overlay(
+                                   VStack(spacing: 8) {
+                                       Image(systemName: "photo.badge.plus")
+                                           .font(.system(size: 40))
+                                           .foregroundColor(.gray)
+                                       Text("대표 이미지 추가")
+                                           .font(.caption)
+                                           .foregroundColor(.gray)
+                                   }
+                               )
+                       }
+                   }
+               }
+           }
     
     private var titleAndStatusView: some View {
         HStack {
@@ -112,3 +126,4 @@ struct StatusBadgeView: View {
         }
     }
 }
+

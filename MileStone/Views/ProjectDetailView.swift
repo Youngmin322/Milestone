@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import SwiftData
 
 struct ProjectDetailView: View {
     @State private var viewModel: ProjectDetailViewModel
@@ -505,7 +506,8 @@ struct ProjectDetailView: View {
             if viewModel.isEditMode {
                 TextEditor(text: text)
                     .frame(minHeight: 80)
-                    .padding(6)
+                    .scrollContentBackground(.hidden)
+                    .padding(8)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
@@ -513,6 +515,7 @@ struct ProjectDetailView: View {
                             if text.wrappedValue.isEmpty {
                                 Text(placeholder)
                                     .foregroundColor(.gray)
+                                    .padding(.horizontal, 12)
                                     .padding(8)
                             }
                         }, alignment: .topLeading
@@ -590,7 +593,7 @@ struct ExpandableSection<Content: View>: View {
             }
             .padding(.bottom, 2)
             
-            // ✅ 핵심: 자연스러운 펼침/접힘 애니메이션
+            // 펼침/접힘 애니메이션
             if isExpanded {
                 VStack(alignment: .leading, spacing: 12) {
                     content
@@ -623,4 +626,107 @@ struct LinkRow: View {
             }
         }
     }
+}
+
+#Preview {
+    NavigationStack {
+        ProjectDetailView(project: sampleProject)
+            .modelContainer(for: Project.self, inMemory: true)
+    }
+}
+
+// MARK: - Sample Data
+private let sampleProject: Project = {
+    let project = Project(
+        title: "AI 기반 할일 관리 앱",
+        tagline: "머신러닝으로 우선순위를 자동 정렬하는 스마트 투두 앱",
+        projectDescription: "사용자의 패턴을 학습하여 할일의 우선순위를 자동으로 정렬하고, 최적의 일정을 제안하는 iOS 앱입니다.",
+        techStack: ["Swift", "SwiftUI", "Core ML", "CloudKit", "Combine"],
+        startDate: Date().addingTimeInterval(-90 * 24 * 60 * 60), // 90일 전
+        endDate: Date().addingTimeInterval(-30 * 24 * 60 * 60), // 30일 전
+        status: .launched,
+        thumbnail: nil, // 실제 앱에서는 이미지 데이터
+        images: [],
+        role: "iOS 개발 리드",
+        teamSize: "4명 (디자이너 1, 백엔드 1, iOS 2)",
+        projectType: .team,
+        problem: "기존 할일 관리 앱들은 사용자가 직접 우선순위를 설정해야 하고, 일정 관리가 번거로워 많은 사용자가 중도 포기하는 문제가 있었습니다.",
+        solution: "Core ML을 활용하여 사용자의 할일 완료 패턴을 학습하고, 시간대별 생산성을 분석하여 자동으로 우선순위를 조정하는 시스템을 구현했습니다.",
+        goals: "월 활성 사용자(MAU) 10,000명 달성, 앱스토어 생산성 카테고리 Top 100 진입. 실제로 3개월 만에 MAU 15,000명을 달성하고 카테고리 42위까지 올랐습니다.",
+        keyFeatures: [
+            "ML 기반 우선순위 자동 정렬",
+            "시간대별 생산성 분석 대시보드",
+            "자연어 처리를 통한 빠른 할일 입력",
+            "팀 협업을 위한 공유 프로젝트 기능",
+            "위젯 및 시리 단축어 지원"
+        ],
+        challenges: "Core ML 모델의 정확도를 높이는 과정에서 어려움이 있었습니다. 초기에는 단순한 규칙 기반 알고리즘을 사용했지만, 사용자 피드백을 바탕으로 개인화된 학습 모델로 전환했습니다. 또한 백그라운드에서의 데이터 처리 최적화를 위해 효율적인 배치 처리 시스템을 구현했습니다.",
+        githubURL: "https://github.com/username/smart-todo-app",
+        liveURL: "https://apps.apple.com/app/smart-todo",
+        figmaURL: "https://figma.com/file/abc123/smart-todo-design",
+        notes: "이 프로젝트를 통해 머신러닝을 실제 제품에 적용하는 경험을 쌓을 수 있었습니다. 특히 사용자 피드백을 빠르게 반영하여 제품을 개선하는 애자일 개발 프로세스의 중요성을 깨달았습니다. 향후에는 더 정교한 추천 알고리즘과 다른 생산성 앱들과의 연동을 계획하고 있습니다.",
+        tags: ["iOS", "머신러닝", "생산성", "SwiftUI", "Core ML"],
+        isFavorite: true
+    )
+    
+    // 일부 섹션을 비활성화하여 더 현실적으로 만들기
+    project.enabledSections = ["프로젝트 개요", "상세 내용", "링크", "메모 & 회고", "태그"]
+    
+    return project
+}()
+
+// MARK: - Multiple Projects Preview
+#Preview("여러 상태") {
+    TabView {
+        NavigationStack {
+            ProjectDetailView(project: sampleProject)
+        }
+        .tabItem { Label("완성된 프로젝트", systemImage: "checkmark.circle.fill") }
+        
+        NavigationStack {
+            ProjectDetailView(project: emptyProject)
+        }
+        .tabItem { Label("새 프로젝트", systemImage: "plus.circle") }
+        
+        NavigationStack {
+            ProjectDetailView(project: inProgressProject)
+        }
+        .tabItem { Label("진행중", systemImage: "clock.fill") }
+    }
+    .modelContainer(for: Project.self, inMemory: true)
+}
+
+private let emptyProject = Project(
+    title: "새 프로젝트",
+    projectDescription: "프로젝트 설명을 입력하세요",
+    techStack: [],
+    startDate: Date()
+)
+
+private let inProgressProject: Project = {
+    let project = Project(
+        title: "날씨 위젯 앱",
+        tagline: "미니멀한 디자인의 iOS 날씨 위젯",
+        projectDescription: "간단하고 아름다운 날씨 정보를 제공하는 위젯 앱",
+        techStack: ["SwiftUI", "WidgetKit", "WeatherKit"],
+        startDate: Date().addingTimeInterval(-30 * 24 * 60 * 60),
+        status: .inProgress,
+        role: "개인 개발",
+        teamSize: "1명",
+        projectType: .personal,
+        keyFeatures: ["실시간 날씨 업데이트", "다양한 위젯 크기 지원"]
+    )
+    project.enabledSections = ["상세 내용"]
+    return project
+}()
+
+// MARK: - Edit Mode Preview
+#Preview("편집 모드") {
+    NavigationStack {
+        ProjectDetailView(project: sampleProject)
+            .onAppear {
+                // 편집 모드로 자동 전환하려면 ViewModel에서 처리
+            }
+    }
+    .modelContainer(for: Project.self, inMemory: true)
 }
