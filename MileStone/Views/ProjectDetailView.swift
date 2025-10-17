@@ -543,8 +543,6 @@ struct ProjectDetailView: View {
             }
         }
     }
-    
-    // MARK: - Status Badge
 }
 
 // MARK: - Expandable Section

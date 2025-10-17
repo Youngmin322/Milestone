@@ -36,7 +36,6 @@ struct ProjectListView: View {
                             }
                         }
                         
-                        // 이미지를 오른쪽 끝으로 밀어내는 Spacer
                         Spacer()
                         
                         // 썸네일 이미지
