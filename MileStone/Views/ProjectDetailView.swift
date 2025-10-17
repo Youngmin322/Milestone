@@ -429,6 +429,7 @@ struct ProjectDetailView: View {
                     Text(viewModel.project.notes)
                         .font(.body)
                         .padding()
+                        .scrollContentBackground(.hidden)
                         .background(Color(.systemGray6))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 } else {
@@ -507,6 +508,7 @@ struct ProjectDetailView: View {
                 TextEditor(text: text)
                     .frame(minHeight: 80)
                     .padding(6)
+                    .scrollContentBackground(.hidden)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(
