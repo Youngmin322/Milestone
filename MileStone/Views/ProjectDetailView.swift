@@ -717,9 +717,6 @@ private let inProgressProject: Project = {
 #Preview("편집 모드") {
     NavigationStack {
         ProjectDetailView(project: sampleProject)
-            .onAppear {
-                // 편집 모드로 자동 전환하려면 ViewModel에서 처리
-            }
     }
     .modelContainer(for: Project.self, inMemory: true)
 }
