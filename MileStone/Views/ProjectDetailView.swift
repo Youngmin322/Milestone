@@ -253,9 +253,9 @@ struct ProjectDetailView: View {
     private var overviewSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             if viewModel.isEditMode || viewModel.hasOverviewContent {
-                subsectionView(title: "문제 정의", text: $viewModel.project.problem, placeholder: "어떤 문제를 해결하고자 했나요?")
-                subsectionView(title: "솔루션", text: $viewModel.project.solution, placeholder: "어떻게 해결했나요?")
-                subsectionView(title: "목표 및 결과", text: $viewModel.project.goals, placeholder: "목표와 달성한 결과는?")
+                subsectionView(title: "문제 정의", text: $viewModel.project.problem, placeholder: "")
+                subsectionView(title: "솔루션", text: $viewModel.project.solution, placeholder: "")
+                subsectionView(title: "목표 및 결과", text: $viewModel.project.goals, placeholder: "")
             } else {
                 Text("프로젝트 개요를 추가해보세요.")
                     .foregroundStyle(.secondary)
@@ -269,7 +269,7 @@ struct ProjectDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             if viewModel.isEditMode || viewModel.hasDetailsContent {
                 keyFeaturesSection
-                subsectionView(title: "도전 과제", text: $viewModel.project.challenges, placeholder: "개발 과정에서 겪은 어려움")
+                subsectionView(title: "도전 과제", text: $viewModel.project.challenges, placeholder: "")
             } else {
                 Text("상세 내용을 추가해보세요.")
                     .foregroundStyle(.secondary)
@@ -421,21 +421,14 @@ struct ProjectDetailView: View {
             if viewModel.isEditMode {
                 TextEditor(text: $viewModel.project.notes)
                     .frame(minHeight: 100)
+                    .scrollContentBackground(.hidden)
                     .padding(8)
                     .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                if !viewModel.project.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(viewModel.project.notes)
-                        .font(.body)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else {
-                    Text("메모나 회고를 추가해보세요.")
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                }
+                    .overlay(
+                        Group {
+                        }, alignment: .topLeading
+                    )
             }
         }
     }
@@ -550,8 +543,6 @@ struct ProjectDetailView: View {
             }
         }
     }
-    
-    // MARK: - Status Badge
 }
 
 // MARK: - Expandable Section
@@ -724,9 +715,6 @@ private let inProgressProject: Project = {
 #Preview("편집 모드") {
     NavigationStack {
         ProjectDetailView(project: sampleProject)
-            .onAppear {
-                // 편집 모드로 자동 전환하려면 ViewModel에서 처리
-            }
     }
     .modelContainer(for: Project.self, inMemory: true)
 }
