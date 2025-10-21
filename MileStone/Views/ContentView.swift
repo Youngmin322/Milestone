@@ -25,7 +25,7 @@ struct ContentView: View {
             
             Tab("이력서", systemImage: "person.circle.fill") {
                 NavigationStack {
-                    EmptyView()
+                    ResumeView()
                 }
             }
             
