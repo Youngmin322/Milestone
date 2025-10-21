@@ -11,6 +11,9 @@ import UniformTypeIdentifiers
 
 struct ResumeView: View {
     @State private var pdfDocument: PDFDocument?
+    @State private var showingDocumentPicker = false
+    @State private var showingShareSheet = false
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -18,7 +21,15 @@ struct ResumeView: View {
                     PDFKitView(pdfDocument: pdfDocument)
                         .ignoresSafeArea()
                 } else {
-                    
+                    ContentUnavailableView {
+                        Label("이력서가 없습니다.", systemImage: "doc.text")
+                    } description: {
+                        Text("PDF 파일을 업로드하여 이력서를 등록하세요.")
+                    } actions: {
+                        Button("PDF 업로드") {
+                            showingDocumentPicker = true
+                        }
+                    }
                 }
             }
         }
