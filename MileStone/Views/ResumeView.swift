@@ -21,7 +21,7 @@ struct ResumeView: View {
                 if let pdfDocument = pdfDocument {
                     // PDF가 있을 때
                     PDFKitView(pdfDocument: pdfDocument)
-                        .edgesIgnoringSafeArea(.bottom) // top 제외
+                        .edgesIgnoringSafeArea(.bottom)
                 } else {
                     // PDF가 없을 때
                     ContentUnavailableView {
@@ -37,7 +37,7 @@ struct ResumeView: View {
                 }
             }
             .navigationTitle("이력서")
-            .navigationBarTitleDisplayMode(.inline) // large 대신 inline 사용
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if pdfDocument != nil {
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -134,7 +134,6 @@ struct ShareSheet: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
-// ContentView에서 사용할 수 있도록 Preview
 #Preview {
     ResumeView()
 }
