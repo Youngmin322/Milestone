@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var searchText = ""
+    
     var body: some View {
         TabView {
             Tab("홈", systemImage: "house.fill") {
@@ -31,8 +33,9 @@ struct ContentView: View {
             
             Tab(role: .search) {
                 NavigationStack {
-                    ProjectListView()
+                    ProjectListView(searchText: searchText)
                 }
+                .searchable(text: $searchText, prompt: "프로젝트 이름 검색")
             }
         }
     }

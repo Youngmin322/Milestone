@@ -12,10 +12,21 @@ struct ProjectListView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Query private var projects: [Project]
+    var searchText: String = ""
+    
+    private var filteredProjects: [Project] {
+        if searchText.isEmpty {
+            return projects
+        } else {
+            return projects.filter { project in
+                project.title.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
     
     var body: some View {
         List {
-            ForEach(projects) { project in
+            ForEach(filteredProjects) { project in
                 NavigationLink(destination: ProjectDetailView(project: project)) {
                     HStack(spacing: 12) {
                         
@@ -52,9 +63,10 @@ struct ProjectListView: View {
                 }
             }
             .onDelete { offsets in
-                // 직접 삭제 처리
                 for index in offsets {
-                    modelContext.delete(projects[index])
+                    if let projectIndex = projects.firstIndex(of: filteredProjects[index]) {
+                        modelContext.delete(projects[projectIndex])
+                    }
                 }
             }
         }
