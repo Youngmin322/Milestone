@@ -10,23 +10,24 @@ import PDFKit
 import UniformTypeIdentifiers
 
 struct ResumeView: View {
-    @State private var pdfDocument: PDFDocument?
+    @AppStorage("resumePDFData") private var resumePDFData: Data?
     @State private var showingDocumentPicker = false
     @State private var showingShareSheet = false
-    
-    @AppStorage("resumePDFData") private var resumePDFData: Data?
+    @State private var pdfDocument: PDFDocument?
     
     var body: some View {
         NavigationStack {
             ZStack {
                 if let pdfDocument = pdfDocument {
+                    // PDF가 있을 때
                     PDFKitView(pdfDocument: pdfDocument)
-                        .ignoresSafeArea()
+                        .edgesIgnoringSafeArea(.bottom)
                 } else {
+                    // PDF가 없을 때
                     ContentUnavailableView {
-                        Label("이력서가 없습니다.", systemImage: "doc.text")
+                        Label("이력서가 없습니다", systemImage: "doc.text")
                     } description: {
-                        Text("PDF 파일을 업로드하여 이력서를 등록하세요.")
+                        Text("PDF 파일을 업로드하여 이력서를 등록하세요")
                     } actions: {
                         Button("PDF 업로드") {
                             showingDocumentPicker = true
@@ -36,7 +37,7 @@ struct ResumeView: View {
                 }
             }
             .navigationTitle("이력서")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if pdfDocument != nil {
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -44,6 +45,12 @@ struct ResumeView: View {
                             showingShareSheet = true
                         } label: {
                             Image(systemName: "square.and.arrow.up")
+                        }
+                        
+                        Button {
+                            showingDocumentPicker = true
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
                         }
                     }
                 }
@@ -56,7 +63,7 @@ struct ResumeView: View {
                 case .success(let url):
                     loadPDF(from: url)
                 case .failure(let error):
-                    print("파일 선택 에러: \(error.localizedDescription)")
+                    print("Error selecting file: \(error.localizedDescription)")
                 }
             }
             .sheet(isPresented: $showingShareSheet) {
@@ -69,7 +76,7 @@ struct ResumeView: View {
             loadStoredPDF()
         }
     }
- 
+    
     private func loadPDF(from url: URL) {
         guard url.startAccessingSecurityScopedResource() else { return }
         defer { url.stopAccessingSecurityScopedResource() }
@@ -104,6 +111,10 @@ struct PDFKitView: UIViewRepresentable {
         pdfView.autoScales = true
         pdfView.displayMode = .singlePageContinuous
         pdfView.displayDirection = .vertical
+        
+        // 배경색 설정
+        pdfView.backgroundColor = UIColor.systemBackground
+        
         return pdfView
     }
     
