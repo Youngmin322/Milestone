@@ -21,7 +21,7 @@ struct ContentView: View {
             
             Tab("통계", systemImage: "chart.bar.fill") {
                 NavigationStack {
-                    EmptyView()
+                    TimeLineView()
                 }
             }
             
