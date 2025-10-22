@@ -36,6 +36,7 @@ struct TimeLineView: View {
                     }
                 }
             }
+            .navigationTitle("타임라인")
         }
     }
     
