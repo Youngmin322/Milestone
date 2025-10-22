@@ -19,7 +19,7 @@ struct ContentView: View {
                 }
             }
             
-            Tab("통계", systemImage: "chart.bar.fill") {
+            Tab("타임라인", systemImage: "clock.fill") {
                 NavigationStack {
                     TimeLineView()
                 }
