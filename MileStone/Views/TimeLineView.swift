@@ -50,15 +50,29 @@ struct TimeLineView: View {
         }
         
         var body: some View {
-            VStack(spacing: 0) {
-                ForEach(Array(sortedProjects.enumerated()), id: \.element.id) { index, project in
-                    TimeLineItemView(
-                        project: project,
-                        isFirst: index == 0,
-                        isLast: index == sortedProjects.count - 1
-                    )
+            ZStack(alignment: .leading) {
+                // 연속 라인 배경
+                HStack {
+                    Spacer()
+                        .frame(width: 70 + 16 + 5)  // 날짜영역 + spacing + 점의 중심
+                    
+                    Rectangle()
+                        .fill(Color(.systemGray4))
+                        .frame(width: 2)
                 }
-                .padding(.top, 20)
+                .padding(.top, 32)  // 첫 점 위치만큼 offset
+                
+                // 프로젝트 목록
+                VStack(spacing: 0) {
+                    ForEach(Array(sortedProjects.enumerated()), id: \.element.id) { index, project in
+                        TimeLineItemView(
+                            project: project,
+                            isFirst: index == 0,
+                            isLast: index == sortedProjects.count - 1
+                        )
+                    }
+                    .padding(.top, 20)
+                }
             }
         }
         
@@ -115,17 +129,8 @@ struct TimeLineView: View {
                     }
                     .frame(width: 70)
                     
-                    // 타임라인 라인, 점
-                    VStack(spacing: 0) {
-                        // 위쪽 라인
-                        if !isFirst {
-                            Rectangle()
-                                .fill(Color(.systemGray4))
-                                .frame(width: 2)
-                                .frame(height: 20)
-                        }
-                        
-                        // 프로젝트 상태 색상
+                    // 타임라인 점 (라인 제거, 점만 유지)
+                    VStack {
                         Circle()
                             .fill(circleColor)
                             .frame(width: 12, height: 12)
@@ -135,14 +140,11 @@ struct TimeLineView: View {
                             )
                             .shadow(color: circleColor.opacity(0.3), radius: 4)
                         
-                        // 아래쪽 라인
-                        if !isLast {
-                            Rectangle()
-                                .fill(Color(.systemGray4))
-                                .frame(width: 2)
-                                .frame(minHeight: isExpanded ? 100 : 60)
-                        }
+                        Spacer()
                     }
+                    .frame(width: 12)
+                    
+                    // 오른쪽 콘텐츠는 동일...
                     
                     // 오른쪽 콘텐츠
                     VStack(alignment: .leading, spacing: 8) {
