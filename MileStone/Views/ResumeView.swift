@@ -14,6 +14,7 @@ struct ResumeView: View {
     @State private var showingDocumentPicker = false
     @State private var showingShareSheet = false
     @State private var pdfDocument: PDFDocument?
+    @State private var viewID = UUID()
     
     var body: some View {
         NavigationStack {
@@ -21,6 +22,7 @@ struct ResumeView: View {
                 if let pdfDocument = pdfDocument {
                     // PDF가 있을 때
                     PDFKitView(pdfDocument: pdfDocument)
+                        .id(viewID)
                         .edgesIgnoringSafeArea(.bottom)
                 } else {
                     // PDF가 없을 때
@@ -74,6 +76,7 @@ struct ResumeView: View {
         }
         .onAppear {
             loadStoredPDF()
+            viewID = UUID()  // PDF 뷰를 리셋하기 위해 새로운 ID 생성
         }
     }
     
