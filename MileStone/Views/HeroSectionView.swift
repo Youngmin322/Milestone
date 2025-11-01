@@ -33,6 +33,11 @@ struct HeroSectionView: View {
                             .frame(height: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
+                    .onChange(of: viewModel.selectedPhoto) { _, _ in
+                        Task {
+                            await viewModel.handleThumbnailSelection()
+                        }
+                    }
                 } else {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -42,7 +47,6 @@ struct HeroSectionView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
             } else if viewModel.isEditMode {
-                // 썸네일이 없고 편집 모드일 때만 추가 UI 표시
                 PhotosPicker(selection: $viewModel.selectedPhoto, matching: .images) {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color.gray.opacity(0.2))
@@ -58,6 +62,11 @@ struct HeroSectionView: View {
                                     .foregroundColor(.gray)
                             }
                         )
+                }
+                .onChange(of: viewModel.selectedPhoto) { _, _ in
+                    Task {
+                        await viewModel.handleThumbnailSelection()
+                    }
                 }
             }
         }
