@@ -18,7 +18,7 @@ struct ProjectDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 13) {
                 HeroSectionView(viewModel: viewModel)
                 infoCard
                 
@@ -28,6 +28,7 @@ struct ProjectDetailView: View {
             }
             .padding()
         }
+        .background(Color(.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -71,6 +72,7 @@ struct ProjectDetailView: View {
                 viewModel.toggleEditMode()
             } label: {
                 Text(viewModel.isEditMode ? "완료" : "편집")
+                    .fontWeight(.medium)
             }
         }
     }
@@ -86,8 +88,10 @@ struct ProjectDetailView: View {
                         Text(section.rawValue)
                             .foregroundColor(.primary)
                         Spacer()
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.blue)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 4)
                 }
             }
             .navigationTitle("섹션 추가")
@@ -172,163 +176,249 @@ struct ProjectDetailView: View {
     
     // MARK: - Info Card
     private var infoCard: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 0) {
             infoRow(icon: "person.fill", title: "역할", value: $viewModel.project.role)
-            infoRow(icon: "person.3.fill", title: "팀 규모", value: $viewModel.project.teamSize)
+            Divider().padding(.leading, 44)
             
-            HStack {
+            infoRow(icon: "person.3.fill", title: "팀 규모", value: $viewModel.project.teamSize)
+            Divider().padding(.leading, 44)
+            
+            HStack(spacing: 16) {
                 Label("프로젝트 유형", systemImage: "folder.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Spacer()
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .frame(width: 140, alignment: .leading)
+                
                 if viewModel.isEditMode {
                     Picker("", selection: $viewModel.project.projectType) {
                         Text("개인").tag(ProjectType.personal)
                         Text("팀").tag(ProjectType.team)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 200)
                 } else {
+                    Spacer()
                     Text(viewModel.project.projectType.rawValue)
-                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            Divider().padding(.leading, 44)
             
             techStackSection
         }
-        .padding()
-        .background(Color(.systemGray6))
+        .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
     
     private var techStackSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("기술 스택", systemImage: "hammer.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                
                 Spacer()
+                
                 if viewModel.isEditMode {
                     Button {
                         viewModel.addTechStack()
                     } label: {
                         Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.blue)
+                            .font(.title3)
                     }
                 }
             }
             
-            FlowLayout(spacing: 8) {
-                ForEach(Array(viewModel.project.techStack.enumerated()), id: \.offset) { index, tech in
-                    if viewModel.isEditMode {
-                        HStack(spacing: 4) {
-                            TextField("기술", text: Binding(
-                                get: { viewModel.project.techStack.indices.contains(index) ? viewModel.project.techStack[index] : "" },
-                                set: { viewModel.updateTechStack(at: index, with: $0) }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                            
-                            Button {
-                                viewModel.removeTechStack(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.red)
+            if viewModel.project.techStack.isEmpty && !viewModel.isEditMode {
+                Text("기술 스택을 추가해보세요")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                FlowLayout(spacing: 8) {
+                    ForEach(Array(viewModel.project.techStack.enumerated()), id: \.offset) { index, tech in
+                        if viewModel.isEditMode {
+                            HStack(spacing: 4) {
+                                TextField("기술", text: Binding(
+                                    get: { viewModel.project.techStack.indices.contains(index) ? viewModel.project.techStack[index] : "" },
+                                    set: { viewModel.updateTechStack(at: index, with: $0) }
+                                ))
+                                .textFieldStyle(.plain)
+                                .font(.subheadline)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .frame(minWidth: 60)
+                                
+                                Button {
+                                    viewModel.removeTechStack(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.callout)
+                                }
                             }
-                        }
-                    } else {
-                        Text(tech)
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue.opacity(0.1))
-                            .foregroundColor(.blue)
+                            .background(Color(.tertiarySystemGroupedBackground))
                             .clipShape(Capsule())
+                        } else {
+                            Text(tech)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.1))
+                                .foregroundColor(.blue)
+                                .clipShape(Capsule())
+                        }
                     }
                 }
             }
         }
+        .padding(16)
     }
     
     // MARK: - Overview Section
     private var overviewSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             if viewModel.isEditMode || viewModel.hasOverviewContent {
-                subsectionView(title: "문제 정의", text: $viewModel.project.problem, placeholder: "")
-                subsectionView(title: "솔루션", text: $viewModel.project.solution, placeholder: "")
-                subsectionView(title: "목표 및 결과", text: $viewModel.project.goals, placeholder: "")
+                AppleStyleTextEditor(
+                    title: "문제 정의",
+                    text: $viewModel.project.problem,
+                    isEditing: viewModel.isEditMode
+                )
+                
+                AppleStyleTextEditor(
+                    title: "솔루션",
+                    text: $viewModel.project.solution,
+                    isEditing: viewModel.isEditMode
+                )
+                
+                AppleStyleTextEditor(
+                    title: "목표 및 결과",
+                    text: $viewModel.project.goals,
+                    isEditing: viewModel.isEditMode
+                )
             } else {
-                Text("프로젝트 개요를 추가해보세요.")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
+                EmptyStateView(
+                    icon: "doc.text",
+                    message: "프로젝트 개요를 추가해보세요"
+                )
             }
         }
     }
     
     // MARK: - Details Section
     private var detailsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             if viewModel.isEditMode || viewModel.hasDetailsContent {
                 keyFeaturesSection
-                subsectionView(title: "도전 과제", text: $viewModel.project.challenges, placeholder: "")
+                
+                AppleStyleTextEditor(
+                    title: "도전 과제",
+                    text: $viewModel.project.challenges,
+                    isEditing: viewModel.isEditMode,
+                    minHeight: 100
+                )
             } else {
-                Text("상세 내용을 추가해보세요.")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
+                EmptyStateView(
+                    icon: "list.bullet.clipboard",
+                    message: "상세 내용을 추가해보세요"
+                )
             }
         }
     }
     
     private var keyFeaturesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("주요 기능")
-                    .font(.headline)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                
                 Spacer()
+                
                 if viewModel.isEditMode {
                     Button {
                         viewModel.addKeyFeature()
                     } label: {
                         Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.blue)
+                            .font(.title3)
                     }
                 }
             }
             
-            ForEach(Array(viewModel.project.keyFeatures.enumerated()), id: \.offset) { index, feature in
-                HStack {
-                    if viewModel.isEditMode {
-                        TextField("기능", text: Binding(
-                            get: { viewModel.project.keyFeatures.indices.contains(index) ? viewModel.project.keyFeatures[index] : "" },
-                            set: { viewModel.updateKeyFeature(at: index, with: $0) }
-                        ))
-                        Button {
-                            viewModel.removeKeyFeature(at: index)
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.red)
+            if viewModel.project.keyFeatures.isEmpty && !viewModel.isEditMode {
+                Text("주요 기능을 추가해보세요")
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(viewModel.project.keyFeatures.enumerated()), id: \.offset) { index, feature in
+                        HStack(alignment: .center, spacing: 12) {
+                            if !viewModel.isEditMode {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                    .font(.body)
+                            }
+                            
+                            if viewModel.isEditMode {
+                                TextField("기능", text: Binding(
+                                    get: { viewModel.project.keyFeatures.indices.contains(index) ? viewModel.project.keyFeatures[index] : "" },
+                                    set: { viewModel.updateKeyFeature(at: index, with: $0) }
+                                ), axis: .vertical)
+                                .textFieldStyle(.plain)
+                                .font(.body)
+                                
+                                Button {
+                                    viewModel.removeKeyFeature(at: index)
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.body)
+                                }
+                            } else {
+                                Text(feature)
+                                    .font(.body)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
                         }
-                    } else {
-                        Text("• \(feature)")
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        
+                        if index < viewModel.project.keyFeatures.count - 1 {
+                            Divider()
+                                .padding(.leading, viewModel.isEditMode ? 16 : 52)
+                        }
                     }
                 }
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             }
         }
     }
     
     // MARK: - Visuals Section
     private var visualsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             if viewModel.isEditMode {
                 PhotosPicker(selection: $viewModel.selectedImages, matching: .images) {
                     HStack {
                         Image(systemName: "photo.badge.plus")
-                            .foregroundColor(.blue)
+                            .font(.title3)
                         Text("이미지 추가")
-                            .foregroundColor(.blue)
+                            .font(.body)
                         Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
                     }
-                    .padding()
-                    .background(Color.blue.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .foregroundColor(.blue)
+                    .padding(16)
+                    .background(Color(.tertiarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
             
@@ -341,7 +431,7 @@ struct ProjectDetailView: View {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: 120, height: 120)
+                                        .frame(width: 160, height: 160)
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                     
                                     if viewModel.isEditMode {
@@ -349,22 +439,26 @@ struct ProjectDetailView: View {
                                             viewModel.removeImage(at: index)
                                         } label: {
                                             Image(systemName: "xmark.circle.fill")
-                                                .font(.system(size: 20))
-                                                .foregroundStyle(.red)
-                                                .background(Color.white, in: Circle())
+                                                .font(.title3)
+                                                .foregroundStyle(.white, .black.opacity(0.4))
+                                                .background(
+                                                    Circle()
+                                                        .fill(.ultraThinMaterial)
+                                                        .frame(width: 28, height: 28)
+                                                )
                                         }
-                                        .offset(x: 8, y: -8)
+                                        .padding(8)
                                     }
                                 }
                             }
                         }
                     }
-                    .padding(.horizontal, 2)
                 }
             } else if !viewModel.isEditMode {
-                Text("추가된 이미지가 없습니다.")
-                    .foregroundStyle(.secondary)
-                    .font(.subheadline)
+                EmptyStateView(
+                    icon: "photo",
+                    message: "추가된 이미지가 없습니다"
+                )
             }
         }
     }
@@ -373,106 +467,149 @@ struct ProjectDetailView: View {
     private var linksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             if viewModel.isEditMode {
-                urlField(title: "GitHub", binding: Binding(
-                    get: { viewModel.project.githubURL ?? "" },
-                    set: { viewModel.updateGithubURL($0) }
-                ))
-                urlField(title: "Live Site", binding: Binding(
-                    get: { viewModel.project.liveURL ?? "" },
-                    set: { viewModel.updateLiveURL($0) }
-                ))
-                urlField(title: "Figma", binding: Binding(
-                    get: { viewModel.project.figmaURL ?? "" },
-                    set: { viewModel.updateFigmaURL($0) }
-                ))
+                VStack(spacing: 0) {
+                    AppleStyleURLField(
+                        title: "GitHub",
+                        icon: "link.circle.fill",
+                        url: Binding(
+                            get: { viewModel.project.githubURL ?? "" },
+                            set: { viewModel.updateGithubURL($0) }
+                        )
+                    )
+                    
+                    Divider().padding(.leading, 44)
+                    
+                    AppleStyleURLField(
+                        title: "Live Site",
+                        icon: "globe",
+                        url: Binding(
+                            get: { viewModel.project.liveURL ?? "" },
+                            set: { viewModel.updateLiveURL($0) }
+                        )
+                    )
+                    
+                    Divider().padding(.leading, 44)
+                    
+                    AppleStyleURLField(
+                        title: "Figma",
+                        icon: "pencil.and.outline",
+                        url: Binding(
+                            get: { viewModel.project.figmaURL ?? "" },
+                            set: { viewModel.updateFigmaURL($0) }
+                        )
+                    )
+                }
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
-                if let githubURL = viewModel.project.githubURL, !githubURL.isEmpty {
-                    LinkRow(title: "GitHub", url: githubURL)
-                }
-                if let liveURL = viewModel.project.liveURL, !liveURL.isEmpty {
-                    LinkRow(title: "Live Site", url: liveURL)
-                }
-                if let figmaURL = viewModel.project.figmaURL, !figmaURL.isEmpty {
-                    LinkRow(title: "Figma", url: figmaURL)
+                VStack(spacing: 8) {
+                    if let githubURL = viewModel.project.githubURL, !githubURL.isEmpty {
+                        LinkRow(title: "GitHub", url: githubURL, icon: "link.circle.fill")
+                    }
+                    if let liveURL = viewModel.project.liveURL, !liveURL.isEmpty {
+                        LinkRow(title: "Live Site", url: liveURL, icon: "globe")
+                    }
+                    if let figmaURL = viewModel.project.figmaURL, !figmaURL.isEmpty {
+                        LinkRow(title: "Figma", url: figmaURL, icon: "pencil.and.outline")
+                    }
                 }
                 
                 if !viewModel.hasLinksContent {
-                    Text("링크를 추가해보세요.")
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
+                    EmptyStateView(
+                        icon: "link",
+                        message: "링크를 추가해보세요"
+                    )
                 }
             }
         }
     }
     
-    private func urlField(title: String, binding: Binding<String>) -> some View {
-        HStack {
-            Text(title)
-                .font(.subheadline)
-            Spacer()
-            TextField("\(title) URL", text: binding)
-                .textFieldStyle(.roundedBorder)
-        }
-    }
-    
     // MARK: - Notes Section
     private var notesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             if viewModel.isEditMode {
-                TextEditor(text: $viewModel.project.notes)
-                    .frame(minHeight: 100)
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        Group {
-                        }, alignment: .topLeading
+                AppleStyleTextEditor(
+                    title: "메모 & 회고",
+                    text: $viewModel.project.notes,
+                    isEditing: true,
+                    minHeight: 120
+                )
+            } else {
+                if !viewModel.project.notes.isEmpty {
+                    Text(viewModel.project.notes)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    EmptyStateView(
+                        icon: "note.text",
+                        message: "메모를 추가해보세요"
                     )
+                }
             }
         }
     }
     
     // MARK: - Tags Section
     private var tagsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             if viewModel.isEditMode {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("태그")
-                            .font(.headline)
-                        Spacer()
-                        Button {
-                            viewModel.addTag()
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.blue)
-                        }
+                HStack {
+                    Text("태그")
+                        .font(.body)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Button {
+                        viewModel.addTag()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.blue)
+                            .font(.title3)
                     }
-                    
-                    ForEach(Array(viewModel.project.tags.enumerated()), id: \.offset) { index, tag in
-                        HStack {
-                            TextField("태그", text: Binding(
-                                get: { viewModel.project.tags.indices.contains(index) ? viewModel.project.tags[index] : "" },
-                                set: { viewModel.updateTag(at: index, with: $0) }
-                            ))
-                            .textFieldStyle(.roundedBorder)
+                }
+                
+                if viewModel.project.tags.isEmpty {
+                    Text("태그를 추가해보세요")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.project.tags.enumerated()), id: \.offset) { index, tag in
+                            HStack(spacing: 12) {
+                                TextField("태그", text: Binding(
+                                    get: { viewModel.project.tags.indices.contains(index) ? viewModel.project.tags[index] : "" },
+                                    set: { viewModel.updateTag(at: index, with: $0) }
+                                ))
+                                .textFieldStyle(.plain)
+                                .font(.body)
+                                
+                                Button {
+                                    viewModel.removeTag(at: index)
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.body)
+                                }
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 16)
                             
-                            Button {
-                                viewModel.removeTag(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.red)
+                            if index < viewModel.project.tags.count - 1 {
+                                Divider().padding(.leading, 16)
                             }
                         }
                     }
+                    .background(Color(.tertiarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             } else {
                 FlowLayout(spacing: 8) {
                     ForEach(Array(viewModel.project.tags.enumerated()), id: \.offset) { index, tag in
                         if !tag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(tag)
-                                .font(.caption)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                                 .background(Color.green.opacity(0.1))
@@ -483,45 +620,10 @@ struct ProjectDetailView: View {
                 }
                 
                 if viewModel.project.tags.isEmpty || viewModel.project.tags.allSatisfy({ $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
-                    Text("태그를 추가해보세요.")
-                        .foregroundStyle(.secondary)
-                        .font(.subheadline)
-                }
-            }
-        }
-    }
-    
-    // MARK: - Subsection View
-    private func subsectionView(title: String, text: Binding<String>, placeholder: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.headline)
-            if viewModel.isEditMode {
-                TextEditor(text: text)
-                    .frame(minHeight: 80)
-                    .scrollContentBackground(.hidden)
-                    .padding(8)
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(
-                        Group {
-                            if text.wrappedValue.isEmpty {
-                                Text(placeholder)
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal, 12)
-                                    .padding(8)
-                            }
-                        }, alignment: .topLeading
+                    EmptyStateView(
+                        icon: "tag",
+                        message: "태그를 추가해보세요"
                     )
-            } else {
-                if !text.wrappedValue.isEmpty {
-                    Text(text.wrappedValue)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                } else {
-                    Text("-")
-                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -529,19 +631,117 @@ struct ProjectDetailView: View {
     
     // MARK: - Info Row
     private func infoRow(icon: String, title: String, value: Binding<String>) -> some View {
-        HStack {
+        HStack(spacing: 16) {
             Label(title, systemImage: icon)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Spacer()
+                .font(.body)
+                .foregroundStyle(.primary)
+                .frame(width: 140, alignment: .leading)
+            
             if viewModel.isEditMode {
                 TextField(title, text: value)
+                    .textFieldStyle(.plain)
                     .multilineTextAlignment(.trailing)
+                    .font(.body)
+                    .foregroundStyle(.primary)
             } else {
-                Text(value.wrappedValue)
-                    .font(.subheadline)
+                Spacer()
+                Text(value.wrappedValue.isEmpty ? "-" : value.wrappedValue)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
             }
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+// MARK: - Apple Style Components
+
+struct AppleStyleTextEditor: View {
+    let title: String
+    @Binding var text: String
+    var isEditing: Bool
+    var minHeight: CGFloat = 80
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            if isEditing {
+                ZStack(alignment: .topLeading) {
+                    if text.isEmpty {
+                        Text("내용을 입력하세요")
+                            .foregroundStyle(.tertiary)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 8)
+                    }
+                    
+                    TextEditor(text: $text)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: minHeight)
+                        .font(.body)
+                }
+                .padding(12)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            } else {
+                if !text.isEmpty {
+                    Text(text)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text("-")
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+    }
+}
+
+struct AppleStyleURLField: View {
+    let title: String
+    let icon: String
+    @Binding var url: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Label(title, systemImage: icon)
+                .font(.body)
+                .foregroundStyle(.primary)
+                .frame(width: 140, alignment: .leading)
+            
+            TextField("URL 입력", text: $url)
+                .textFieldStyle(.plain)
+                .font(.body)
+                .foregroundStyle(.primary)
+                .keyboardType(.URL)
+                .autocapitalization(.none)
+                .textContentType(.URL)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+struct EmptyStateView: View {
+    let icon: String
+    let message: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(.quaternary)
+                .font(.title3)
+            
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+            
+            Spacer()
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .background(Color(.tertiarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
 
@@ -555,47 +755,59 @@ struct ExpandableSection<Content: View>: View {
     @ViewBuilder let content: Content
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 8) {
-                Button(action: onToggle) {
+        VStack(alignment: .leading, spacing: 0) {
+            Button(action: onToggle) {
+                HStack(alignment: .center, spacing: 12) {
                     Text(title)
-                        .font(.headline)
+                        .font(.title3)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.primary)
-                }
-                .buttonStyle(.plain)
-                
-                Spacer()
-                
-                if let onDelete = onDelete {
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .font(.caption)
-                            .foregroundStyle(.red)
+                    
+                    Spacer()
+                    
+                    if let onDelete = onDelete {
+                        Button(action: onDelete) {
+                            Image(systemName: "minus.circle.fill")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.trailing, 4)
-                }
-                
-                Button(action: onToggle) {
+                    
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
+                .padding(20)
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 12,
+                        bottomLeadingRadius: isExpanded ? 0 : 12,
+                        bottomTrailingRadius: isExpanded ? 0 : 12,
+                        topTrailingRadius: 12
+                    )
+                )
             }
-            .padding(.bottom, 2)
+            .buttonStyle(.plain)
             
-            // 펼침/접힘 애니메이션
             if isExpanded {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 0) {
                     content
                 }
-                .padding()
-                .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                .padding(20)
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 12,
+                        bottomTrailingRadius: 12,
+                        topTrailingRadius: 0
+                    )
+                )
             }
         }
-        .padding(.top, 4)
         .animation(.easeInOut(duration: 0.25), value: isExpanded)
     }
 }
@@ -604,17 +816,36 @@ struct ExpandableSection<Content: View>: View {
 struct LinkRow: View {
     let title: String
     let url: String
+    let icon: String
     
     var body: some View {
-        HStack {
-            Text(title)
-                .font(.subheadline)
-            Spacer()
-            Link(destination: URL(string: url)!) {
-                Text(url)
+        Link(destination: URL(string: url)!) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundStyle(.blue)
+                    .font(.title3)
+                    .frame(width: 28)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    
+                    Text(url)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "arrow.up.right")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundStyle(.tertiary)
             }
+            .padding(16)
+            .background(Color(.tertiarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
     }
 }
@@ -633,10 +864,10 @@ private let sampleProject: Project = {
         tagline: "머신러닝으로 우선순위를 자동 정렬하는 스마트 투두 앱",
         projectDescription: "사용자의 패턴을 학습하여 할일의 우선순위를 자동으로 정렬하고, 최적의 일정을 제안하는 iOS 앱입니다.",
         techStack: ["Swift", "SwiftUI", "Core ML", "CloudKit", "Combine"],
-        startDate: Date().addingTimeInterval(-90 * 24 * 60 * 60), // 90일 전
-        endDate: Date().addingTimeInterval(-30 * 24 * 60 * 60), // 30일 전
+        startDate: Date().addingTimeInterval(-90 * 24 * 60 * 60),
+        endDate: Date().addingTimeInterval(-30 * 24 * 60 * 60),
         status: .launched,
-        thumbnail: nil, // 실제 앱에서는 이미지 데이터
+        thumbnail: nil,
         images: [],
         role: "iOS 개발 리드",
         teamSize: "4명 (디자이너 1, 백엔드 1, iOS 2)",
@@ -651,16 +882,15 @@ private let sampleProject: Project = {
             "팀 협업을 위한 공유 프로젝트 기능",
             "위젯 및 시리 단축어 지원"
         ],
-        challenges: "Core ML 모델의 정확도를 높이는 과정에서 어려움이 있었습니다. 초기에는 단순한 규칙 기반 알고리즘을 사용했지만, 사용자 피드백을 바탕으로 개인화된 학습 모델로 전환했습니다. 또한 백그라운드에서의 데이터 처리 최적화를 위해 효율적인 배치 처리 시스템을 구현했습니다.",
+        challenges: "Core ML 모델의 정확도를 높이는 과정에서 어려움이 있었습니다. 초기에는 단순한 규칙 기반 알고리즘을 사용했지만, 사용자 피드백을 바탕으로 개인화된 학습 모델로 전환했습니다.",
         githubURL: "https://github.com/username/smart-todo-app",
         liveURL: "https://apps.apple.com/app/smart-todo",
         figmaURL: "https://figma.com/file/abc123/smart-todo-design",
-        notes: "이 프로젝트를 통해 머신러닝을 실제 제품에 적용하는 경험을 쌓을 수 있었습니다. 특히 사용자 피드백을 빠르게 반영하여 제품을 개선하는 애자일 개발 프로세스의 중요성을 깨달았습니다. 향후에는 더 정교한 추천 알고리즘과 다른 생산성 앱들과의 연동을 계획하고 있습니다.",
+        notes: "이 프로젝트를 통해 머신러닝을 실제 제품에 적용하는 경험을 쌓을 수 있었습니다. 특히 사용자 피드백을 빠르게 반영하여 제품을 개선하는 애자일 개발 프로세스의 중요성을 깨달았습니다.",
         tags: ["iOS", "머신러닝", "생산성", "SwiftUI", "Core ML"],
         isFavorite: true
     )
     
-    // 일부 섹션을 비활성화하여 더 현실적으로 만들기
     project.enabledSections = ["프로젝트 개요", "상세 내용", "링크", "메모 & 회고", "태그"]
     
     return project
@@ -710,11 +940,3 @@ private let inProgressProject: Project = {
     project.enabledSections = ["상세 내용"]
     return project
 }()
-
-// MARK: - Edit Mode Preview
-#Preview("편집 모드") {
-    NavigationStack {
-        ProjectDetailView(project: sampleProject)
-    }
-    .modelContainer(for: Project.self, inMemory: true)
-}
