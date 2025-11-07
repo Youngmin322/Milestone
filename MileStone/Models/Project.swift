@@ -10,48 +10,75 @@ import SwiftData
 
 @Model
 final class Project {
-    // 기본 정보
+    // MARK: - Basic Information
     var title: String
-    var tagline: String // 한 줄 설명
+    var tagline: String
     var projectDescription: String
     var techStack: [String]
     var startDate: Date
     var endDate: Date?
-    var status: ProjectStatus // 진행중/완료 등
+    var status: ProjectStatus
     
-    // 이미지
+    // MARK: - Media
     var thumbnail: Data?
-    var images: [Data] // 추가 이미지들
+    var images: [Data]
     
-    // 핵심 정보
+    // MARK: - Project Details
     var role: String
     var teamSize: String
     var projectType: ProjectType
     
-    // 프로젝트 상세
+    // MARK: - Extended Information
     var problem: String
     var solution: String
     var goals: String
     var keyFeatures: [String]
     var challenges: String
     
-    // 링크
+    // MARK: - External Links
     var githubURL: String?
     var liveURL: String?
     var figmaURL: String?
     
-    // 메타
-    var notes: String // 메모 및 회고
+    // MARK: - Metadata
+    var notes: String
     var tags: [String]
     var isFavorite: Bool
+    var enabledSections: Set<String>
     
-    var enabledSections: Set<String> = []
+    // MARK: - Computed Properties
+    var duration: String {
+        let end = endDate ?? Date()
+        let days = Calendar.current.dateComponents([.day], from: startDate, to: end).day ?? 0
+        
+        if days == 0 {
+            return "당일"
+        } else if days < 30 {
+            return "\(days)일"
+        } else if days < 365 {
+            let months = days / 30
+            return "\(months)개월"
+        } else {
+            let years = days / 365
+            let remainingMonths = (days % 365) / 30
+            return remainingMonths > 0 ? "\(years)년 \(remainingMonths)개월" : "\(years)년"
+        }
+    }
     
+    var formattedDateRange: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        let start = formatter.string(from: startDate)
+        let end = formatter.string(from: endDate ?? Date())
+        return "\(start) - \(end)"
+    }
+    
+    // MARK: - Initialization
     init(
         title: String,
         tagline: String = "",
         projectDescription: String,
-        techStack: [String],
+        techStack: [String] = [],
         startDate: Date,
         endDate: Date? = nil,
         status: ProjectStatus = .inProgress,
@@ -70,7 +97,8 @@ final class Project {
         figmaURL: String? = nil,
         notes: String = "",
         tags: [String] = [],
-        isFavorite: Bool = false
+        isFavorite: Bool = false,
+        enabledSections: Set<String> = []
     ) {
         self.title = title
         self.tagline = tagline
@@ -95,16 +123,26 @@ final class Project {
         self.notes = notes
         self.tags = tags
         self.isFavorite = isFavorite
+        self.enabledSections = enabledSections
     }
 }
 
-enum ProjectStatus: String, Codable {
+// MARK: - Enums
+enum ProjectStatus: String, Codable, CaseIterable {
     case inProgress = "진행중"
     case completed = "완료"
     case launched = "런칭됨"
+    
+    var color: String {
+        switch self {
+        case .inProgress: return "orange"
+        case .completed: return "green"
+        case .launched: return "blue"
+        }
+    }
 }
 
-enum ProjectType: String, Codable {
+enum ProjectType: String, Codable, CaseIterable {
     case personal = "개인"
     case team = "팀"
 }
