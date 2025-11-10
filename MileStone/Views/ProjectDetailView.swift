@@ -300,7 +300,7 @@ struct ProjectDetailView: View {
                     isEditing: viewModel.isEditMode
                 )
             } else {
-                EmptyMessageView(
+                EmptyStateView(
                     icon: "doc.text",
                     message: "프로젝트 개요를 추가해보세요"
                 )
@@ -321,7 +321,7 @@ struct ProjectDetailView: View {
                     minHeight: 100
                 )
             } else {
-                EmptyMessageView(
+                EmptyStateView(
                     icon: "list.bullet.clipboard",
                     message: "상세 내용을 추가해보세요"
                 )
@@ -455,7 +455,7 @@ struct ProjectDetailView: View {
                     }
                 }
             } else if !viewModel.isEditMode {
-                EmptyMessageView(
+                EmptyStateView(
                     icon: "photo",
                     message: "추가된 이미지가 없습니다"
                 )
@@ -515,7 +515,7 @@ struct ProjectDetailView: View {
                 }
                 
                 if !viewModel.hasLinksContent {
-                    EmptyMessageView(
+                    EmptyStateView(
                         icon: "link",
                         message: "링크를 추가해보세요"
                     )
@@ -541,7 +541,7 @@ struct ProjectDetailView: View {
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
-                    EmptyMessageView(
+                    EmptyStateView(
                         icon: "note.text",
                         message: "메모를 추가해보세요"
                     )
@@ -620,7 +620,7 @@ struct ProjectDetailView: View {
                 }
                 
                 if viewModel.project.tags.isEmpty || viewModel.project.tags.allSatisfy({ $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
-                    EmptyMessageView(
+                    EmptyStateView(
                         icon: "tag",
                         message: "태그를 추가해보세요"
                     )
@@ -722,7 +722,7 @@ struct AppleStyleURLField: View {
     }
 }
 
-struct EmptyMessageView: View {
+struct EmptyStateView: View {
     let icon: String
     let message: String
     
