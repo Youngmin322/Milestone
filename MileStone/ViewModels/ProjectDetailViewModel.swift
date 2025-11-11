@@ -93,33 +93,35 @@ class ProjectDetailViewModel {
         !project.problem.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
         !project.solution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
         !project.goals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        expandedSections.contains("프로젝트 개요")
+        project.enabledSections.contains("프로젝트 개요")
     }
     
     var hasDetailsContent: Bool {
         !project.keyFeatures.isEmpty ||
         !project.challenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        expandedSections.contains("상세 내용")
+        project.enabledSections.contains("상세 내용")
     }
     
     var hasVisualsContent: Bool {
-        !project.images.isEmpty || expandedSections.contains("비주얼 자료")
+        !project.images.isEmpty ||
+        project.enabledSections.contains("비주얼 자료")
     }
     
     var hasLinksContent: Bool {
         (project.githubURL != nil && !project.githubURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
         (project.liveURL != nil && !project.liveURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
         (project.figmaURL != nil && !project.figmaURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
-        expandedSections.contains("링크")
+        project.enabledSections.contains("링크")
     }
     
     var hasNotesContent: Bool {
         !project.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        expandedSections.contains("메모 & 회고")
+        project.enabledSections.contains("메모 & 회고")
     }
     
     var hasTagsContent: Bool {
-        !project.tags.isEmpty || expandedSections.contains("태그")
+        !project.tags.isEmpty ||
+        project.enabledSections.contains("태그")
     }
     
     // MARK: - Actions
@@ -153,6 +155,9 @@ class ProjectDetailViewModel {
         withAnimation {
             expandedSections.insert(section.rawValue)
             
+            // enabledSections에 추가하여 영구 저장 (Set이므로 insert 사용)
+            project.enabledSections.insert(section.rawValue)
+            
             switch section {
             case .overview:
                 break
@@ -174,10 +179,13 @@ class ProjectDetailViewModel {
         }
         showingAddSectionSheet = false
     }
-    
+
     func deleteSection(_ section: OptionalSection) {
         withAnimation {
             expandedSections.remove(section.rawValue)
+            
+            // enabledSections에서 제거
+            project.enabledSections.remove(section.rawValue)
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 switch section {
