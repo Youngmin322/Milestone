@@ -243,7 +243,13 @@ struct ProjectDetailView: View {
                             HStack(spacing: 4) {
                                 TextField("기술", text: Binding(
                                     get: { viewModel.project.techStack.indices.contains(index) ? viewModel.project.techStack[index] : "" },
-                                    set: { viewModel.updateTechStack(at: index, with: $0) }
+                                    set: { newValue in
+                                        if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                            viewModel.removeTechStack(at: index)
+                                        } else {
+                                            viewModel.updateTechStack(at: index, with: newValue)
+                                        }
+                                    }
                                 ))
                                 .textFieldStyle(.plain)
                                 .font(.subheadline)

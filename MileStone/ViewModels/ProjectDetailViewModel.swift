@@ -125,6 +125,10 @@ class ProjectDetailViewModel {
     // MARK: - Actions
     func toggleEditMode() {
         isEditMode.toggle()
+        
+        if !isEditMode {
+            cleanUpEmptyValues()
+        }
     }
     
     func toggleFavorite() {
@@ -279,5 +283,11 @@ class ProjectDetailViewModel {
     
     func updateFigmaURL(_ value: String) {
         project.figmaURL = value.isEmpty ? nil : value
+    }
+    
+    private func cleanUpEmptyValues() {
+        project.techStack.removeAll { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        project.keyFeatures.removeAll { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        project.tags.removeAll { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 }
