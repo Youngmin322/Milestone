@@ -243,7 +243,13 @@ struct ProjectDetailView: View {
                             HStack(spacing: 4) {
                                 TextField("기술", text: Binding(
                                     get: { viewModel.project.techStack.indices.contains(index) ? viewModel.project.techStack[index] : "" },
-                                    set: { viewModel.updateTechStack(at: index, with: $0) }
+                                    set: { newValue in
+                                        if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                            viewModel.removeTechStack(at: index)
+                                        } else {
+                                            viewModel.updateTechStack(at: index, with: newValue)
+                                        }
+                                    }
                                 ))
                                 .textFieldStyle(.plain)
                                 .font(.subheadline)
@@ -398,6 +404,7 @@ struct ProjectDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             }
         }
+        .padding(.top, -20)
     }
     
     // MARK: - Visuals Section
@@ -461,11 +468,12 @@ struct ProjectDetailView: View {
                 )
             }
         }
+        .padding(.top, -20)
     }
     
     // MARK: - Links Section
     private var linksSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack {
             if viewModel.isEditMode {
                 VStack(spacing: 0) {
                     AppleStyleURLField(
@@ -502,7 +510,7 @@ struct ProjectDetailView: View {
                 .background(Color(.tertiarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
-                VStack(spacing: 8) {
+                VStack(spacing: -4) {
                     if let githubURL = viewModel.project.githubURL, !githubURL.isEmpty {
                         LinkRow(title: "GitHub", url: githubURL, icon: "link.circle.fill")
                     }
@@ -522,6 +530,7 @@ struct ProjectDetailView: View {
                 }
             }
         }
+        .padding(.top, -20)
     }
     
     // MARK: - Notes Section
@@ -548,6 +557,7 @@ struct ProjectDetailView: View {
                 }
             }
         }
+        .padding(.top, -20)
     }
     
     // MARK: - Tags Section
@@ -627,6 +637,7 @@ struct ProjectDetailView: View {
                 }
             }
         }
+        .padding(.top, -20)
     }
     
     // MARK: - Info Row
@@ -664,7 +675,13 @@ struct AppleStyleTextEditor: View {
     var minHeight: CGFloat = 80
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8) {
+            // 타이틀 추가
+            Text(title)
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+            
             if isEditing {
                 ZStack(alignment: .topLeading) {
                     if text.isEmpty {
@@ -689,7 +706,8 @@ struct AppleStyleTextEditor: View {
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
-                    Text("-")
+                    Text("내용 없음")
+                        .font(.body)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -940,3 +958,19 @@ private let inProgressProject: Project = {
     project.enabledSections = ["상세 내용"]
     return project
 }()
+
+#Preview("링크 섹션만") {
+    let project = Project(
+        title: "Test",
+        projectDescription: "Test",
+        techStack: [],
+        startDate: Date()
+    )
+    project.githubURL = "https://github.com/test"
+    project.liveURL = "https://test.com"
+    
+    return NavigationStack {
+        ProjectDetailView(project: project)
+    }
+    .modelContainer(for: Project.self, inMemory: true)
+}
