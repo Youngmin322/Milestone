@@ -49,6 +49,24 @@ class ProjectDetailViewModel {
         let end = project.endDate ?? Date()
         return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
     }
+
+    var hasEndDate: Bool {
+        get { project.endDate != nil }
+        set {
+            if newValue {
+                project.endDate = project.endDate ?? project.startDate
+            } else {
+                project.endDate = nil
+            }
+        }
+    }
+
+    var editableEndDate: Date {
+        get { project.endDate ?? project.startDate }
+        set {
+            project.endDate = newValue
+        }
+    }
     
     var activeSections: [OptionalSection] {
         var sections: [OptionalSection] = []
@@ -135,6 +153,18 @@ class ProjectDetailViewModel {
     
     func toggleFavorite() {
         project.isFavorite.toggle()
+    }
+
+    func updateStartDate(_ date: Date) {
+        project.startDate = date
+
+        if let endDate = project.endDate, endDate < date {
+            project.endDate = date
+        }
+    }
+
+    func updateEndDate(_ date: Date) {
+        project.endDate = max(date, project.startDate)
     }
     
     func toggleSection(_ sectionId: String) {

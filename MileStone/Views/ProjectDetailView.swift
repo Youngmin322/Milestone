@@ -312,6 +312,7 @@ struct ProjectDetailView: View {
                 )
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Details Section
