@@ -101,12 +101,49 @@ struct HeroSectionView: View {
     }
     
     private var dateRangeView: some View {
-        HStack {
-            Image(systemName: "calendar")
-                .foregroundStyle(.secondary)
-            Text(viewModel.dateRangeText)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        Group {
+            if viewModel.isEditMode {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: "calendar")
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 4)
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            DatePicker(
+                                "시작일",
+                                selection: Binding(
+                                    get: { viewModel.project.startDate },
+                                    set: { viewModel.updateStartDate($0) }
+                                ),
+                                displayedComponents: .date
+                            )
+
+                            Toggle("종료일 사용", isOn: $viewModel.hasEndDate)
+
+                            if viewModel.hasEndDate {
+                                DatePicker(
+                                    "종료일",
+                                    selection: Binding(
+                                        get: { viewModel.editableEndDate },
+                                        set: { viewModel.updateEndDate($0) }
+                                    ),
+                                    in: viewModel.project.startDate...,
+                                    displayedComponents: .date
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(.secondary)
+                    Text(viewModel.dateRangeText)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
     }
 }
@@ -135,4 +172,3 @@ struct StatusBadgeView: View {
         }
     }
 }
-
