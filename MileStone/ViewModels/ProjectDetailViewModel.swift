@@ -16,6 +16,9 @@ class ProjectDetailViewModel {
     var selectedPhoto: PhotosPickerItem?
     var selectedImages: [PhotosPickerItem] = []
     var showingAddSectionSheet = false
+    var githubURLText: String
+    var liveURLText: String
+    var figmaURLText: String
     
     // MARK: - Section Types
     enum OptionalSection: String, CaseIterable, Identifiable {
@@ -31,6 +34,9 @@ class ProjectDetailViewModel {
     
     init(project: Project) {
         self.project = project
+        self.githubURLText = project.githubURL ?? ""
+        self.liveURLText = project.liveURL ?? ""
+        self.figmaURLText = project.figmaURL ?? ""
     }
     
     // MARK: - Computed Properties
@@ -126,9 +132,9 @@ class ProjectDetailViewModel {
     }
     
     var hasLinksContent: Bool {
-        (project.githubURL != nil && !project.githubURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
-        (project.liveURL != nil && !project.liveURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
-        (project.figmaURL != nil && !project.figmaURL!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ||
+        ProjectURLValidator.validatedURL(from: project.githubURL) != nil ||
+        ProjectURLValidator.validatedURL(from: project.liveURL) != nil ||
+        ProjectURLValidator.validatedURL(from: project.figmaURL) != nil ||
         project.enabledSections.contains("링크")
     }
     
@@ -144,11 +150,14 @@ class ProjectDetailViewModel {
     
     // MARK: - Actions
     func toggleEditMode() {
-        isEditMode.toggle()
-        
-        if !isEditMode {
+        if isEditMode {
             cleanUpEmptyValues()
+            persistValidatedURLs()
+        } else {
+            synchronizeURLDrafts()
         }
+
+        isEditMode.toggle()
     }
     
     func toggleFavorite() {
@@ -312,15 +321,29 @@ class ProjectDetailViewModel {
     
     // MARK: - URL Management
     func updateGithubURL(_ value: String) {
-        project.githubURL = value.isEmpty ? nil : value
+        githubURLText = value
     }
     
     func updateLiveURL(_ value: String) {
-        project.liveURL = value.isEmpty ? nil : value
+        liveURLText = value
     }
     
     func updateFigmaURL(_ value: String) {
-        project.figmaURL = value.isEmpty ? nil : value
+        figmaURLText = value
+    }
+
+    private func synchronizeURLDrafts() {
+        githubURLText = project.githubURL ?? ""
+        liveURLText = project.liveURL ?? ""
+        figmaURLText = project.figmaURL ?? ""
+    }
+
+    private func persistValidatedURLs() {
+        project.githubURL = ProjectURLValidator.valueForPersistence(from: githubURLText)
+        project.liveURL = ProjectURLValidator.valueForPersistence(from: liveURLText)
+        project.figmaURL = ProjectURLValidator.valueForPersistence(from: figmaURLText)
+
+        synchronizeURLDrafts()
     }
     
     private func cleanUpEmptyValues() {

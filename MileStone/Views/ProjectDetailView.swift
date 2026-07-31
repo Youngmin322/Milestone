@@ -473,6 +473,12 @@ struct ProjectDetailView: View {
     }
     
     // MARK: - Links Section
+    private var hasValidProjectLinks: Bool {
+        ProjectURLValidator.validatedURL(from: viewModel.project.githubURL) != nil ||
+        ProjectURLValidator.validatedURL(from: viewModel.project.liveURL) != nil ||
+        ProjectURLValidator.validatedURL(from: viewModel.project.figmaURL) != nil
+    }
+
     private var linksSection: some View {
         VStack {
             if viewModel.isEditMode {
@@ -481,7 +487,7 @@ struct ProjectDetailView: View {
                         title: "GitHub",
                         icon: "link.circle.fill",
                         url: Binding(
-                            get: { viewModel.project.githubURL ?? "" },
+                            get: { viewModel.githubURLText },
                             set: { viewModel.updateGithubURL($0) }
                         )
                     )
@@ -492,7 +498,7 @@ struct ProjectDetailView: View {
                         title: "Live Site",
                         icon: "globe",
                         url: Binding(
-                            get: { viewModel.project.liveURL ?? "" },
+                            get: { viewModel.liveURLText },
                             set: { viewModel.updateLiveURL($0) }
                         )
                     )
@@ -503,7 +509,7 @@ struct ProjectDetailView: View {
                         title: "Figma",
                         icon: "pencil.and.outline",
                         url: Binding(
-                            get: { viewModel.project.figmaURL ?? "" },
+                            get: { viewModel.figmaURLText },
                             set: { viewModel.updateFigmaURL($0) }
                         )
                     )
@@ -512,18 +518,18 @@ struct ProjectDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
                 VStack(spacing: -4) {
-                    if let githubURL = viewModel.project.githubURL, !githubURL.isEmpty {
-                        LinkRow(title: "GitHub", url: githubURL, icon: "link.circle.fill")
+                    if let githubURL = ProjectURLValidator.validatedURL(from: viewModel.project.githubURL) {
+                        LinkRow(title: "GitHub", destination: githubURL, icon: "link.circle.fill")
                     }
-                    if let liveURL = viewModel.project.liveURL, !liveURL.isEmpty {
-                        LinkRow(title: "Live Site", url: liveURL, icon: "globe")
+                    if let liveURL = ProjectURLValidator.validatedURL(from: viewModel.project.liveURL) {
+                        LinkRow(title: "Live Site", destination: liveURL, icon: "globe")
                     }
-                    if let figmaURL = viewModel.project.figmaURL, !figmaURL.isEmpty {
-                        LinkRow(title: "Figma", url: figmaURL, icon: "pencil.and.outline")
+                    if let figmaURL = ProjectURLValidator.validatedURL(from: viewModel.project.figmaURL) {
+                        LinkRow(title: "Figma", destination: figmaURL, icon: "pencil.and.outline")
                     }
                 }
                 
-                if !viewModel.hasLinksContent {
+                if !hasValidProjectLinks {
                     EmptyStateView(
                         icon: "link",
                         message: "링크를 추가해보세요"
@@ -720,21 +726,36 @@ struct AppleStyleURLField: View {
     let title: String
     let icon: String
     @Binding var url: String
+
+    private var showsValidationError: Bool {
+        ProjectURLValidator.normalizedValue(from: url) != nil &&
+        ProjectURLValidator.validatedURL(from: url) == nil
+    }
     
     var body: some View {
-        HStack(spacing: 16) {
-            Label(title, systemImage: icon)
-                .font(.body)
-                .foregroundStyle(.primary)
-                .frame(width: 140, alignment: .leading)
-            
-            TextField("URL 입력", text: $url)
-                .textFieldStyle(.plain)
-                .font(.body)
-                .foregroundStyle(.primary)
-                .keyboardType(.URL)
-                .autocapitalization(.none)
-                .textContentType(.URL)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 16) {
+                Label(title, systemImage: icon)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .frame(width: 140, alignment: .leading)
+
+                TextField("URL 입력", text: $url)
+                    .textFieldStyle(.plain)
+                    .font(.body)
+                    .foregroundStyle(showsValidationError ? .red : .primary)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .textContentType(.URL)
+            }
+
+            if showsValidationError {
+                Text("http:// 또는 https://로 시작하는 올바른 URL을 입력하세요.")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .padding(.leading, 156)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -834,11 +855,11 @@ struct ExpandableSection<Content: View>: View {
 // MARK: - Link Row
 struct LinkRow: View {
     let title: String
-    let url: String
+    let destination: URL
     let icon: String
     
     var body: some View {
-        Link(destination: URL(string: url)!) {
+        Link(destination: destination) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .foregroundStyle(.blue)
@@ -850,7 +871,7 @@ struct LinkRow: View {
                         .font(.body)
                         .foregroundStyle(.primary)
                     
-                    Text(url)
+                    Text(destination.absoluteString)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
