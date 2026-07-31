@@ -21,7 +21,7 @@ class ProjectListViewModel {
         withAnimation {
             let newProject = Project(
                 title: "New Project",
-                projectDescription: "프로젝트 설명을 입력하세요",
+                projectDescription: "",
                 techStack: ["Swift", "SwiftUI"],
                 startDate: Date(),
                 endDate: nil
