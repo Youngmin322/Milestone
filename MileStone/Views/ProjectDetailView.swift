@@ -20,6 +20,7 @@ struct ProjectDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 13) {
                 HeroSectionView(viewModel: viewModel)
+                descriptionCard
                 infoCard
                 
                 ForEach(viewModel.activeSections) { section in
@@ -174,6 +175,20 @@ struct ProjectDetailView: View {
         }
     }
     
+    // MARK: - Project Description
+    private var descriptionCard: some View {
+        AppleStyleTextEditor(
+            title: "프로젝트 설명",
+            text: $viewModel.project.projectDescription,
+            isEditing: viewModel.isEditMode,
+            minHeight: 120
+        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     // MARK: - Info Card
     private var infoCard: some View {
         VStack(spacing: 0) {
@@ -959,7 +974,7 @@ private let sampleProject: Project = {
 
 private let emptyProject = Project(
     title: "새 프로젝트",
-    projectDescription: "프로젝트 설명을 입력하세요",
+    projectDescription: "",
     techStack: [],
     startDate: Date()
 )

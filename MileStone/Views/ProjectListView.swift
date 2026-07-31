@@ -79,7 +79,7 @@ struct ProjectListView: View {
                 Button(action: {
                     let newProject = Project(
                         title: "New Project",
-                        projectDescription: "프로젝트 설명을 입력하세요",
+                        projectDescription: "",
                         techStack: [],
                         startDate: Date()
                     )
@@ -125,4 +125,3 @@ struct ProjectListView: View {
     return ProjectListView()
         .modelContainer(container)
 }
-
